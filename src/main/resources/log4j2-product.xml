@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+  
+<Configuration status="off" monitorInterval="1800">  
+  
+    <properties>  
+        <property name="LOG_FILE_NAME">lamp_manager.log</property> 
+         <property name="APP_NAME">lamp_manager</property> 
+         
+    </properties>  
+  
+  
+    <Appenders>  
+        <Console name="Console" target="SYSTEM_OUT">  
+<!--             <PatternLayout pattern="%d %-5p (%F:%L) - %m%n" />   -->
+             <PatternLayout pattern="%d{MM-dd HH:mm:ss:SSS} %t [%p] (%logger{50}): %m %n" /> 
+           
+        </Console>  
+  
+        <RollingRandomAccessFile name="Logs"   
+                                 fileName="logs/${APP_NAME}/${LOG_FILE_NAME}"  
+                                 filePattern="logs/${APP_NAME}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}-%i.gz">  
+            <PatternLayout   charset="UTF-8"
+                    pattern="%d{MM-dd HH:mm:ss:SSS} %t [%p] (%logger{50}): %m %n"/>  
+            <Policies>  
+            
+                <TimeBasedTriggeringPolicy/>
+				<!--<CronTriggeringPolicy schedule="59 * * * * ? "/>-->
+                <SizeBasedTriggeringPolicy size="100MB"/>  
+            </Policies>  
+            <DefaultRolloverStrategy max="20"/>  
+        </RollingRandomAccessFile>   
+
+    </Appenders>  
+  
+    <Loggers>  
+        <!-- 3rdparty Loggers -->  
+        <logger name="org.springframework" level="WARN" additivity="false">  
+             <appender-ref ref="Logs"/>  
+                  
+        </logger>
+          <!-- 3rdparty Loggers -->  
+        <logger name="org.apache" level="WARN"  additivity="false">  
+             <appender-ref ref="Logs"/>        
+        </logger>
+        <logger name="com.opensymphony" level="WARN"  additivity="false">  
+             <appender-ref ref="Logs"/>        
+        </logger>
+        <logger name="net.sf.ehcache" level="WARN"  additivity="false">  
+             <appender-ref ref="Logs"/>        
+        </logger>       
+        <logger name="org.mybatis" level="WARN"  additivity="false">  
+             <appender-ref ref="Logs"/>        
+        </logger>   
+        <logger name="com.mchange" level="WARN"  additivity="false">  
+             <appender-ref ref="Logs"/>
+        </logger>  
+        
+        
+
+        
+        <logger name="com.gzseeing" level="info" includeLocation="true" additivity="false" >  
+            <appender-ref ref="Logs"/>
+              
+        </logger>  
+        
+        <logger name="com.haowen" level="info" includeLocation="true" additivity="false" >  
+            <appender-ref ref="Logs"/>
+        </logger> 
+
+  		<!-- 开发用debug -->
+        <root level="debug" includeLocation="true">  
+             <appender-ref ref="Logs"/> 
+             
+        </root>  
+    </Loggers>  
+</Configuration>

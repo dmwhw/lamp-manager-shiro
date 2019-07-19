@@ -1,0 +1,409 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.gzseeing</groupId>
+	<artifactId>lampManage</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+
+
+
+
+	<properties>
+		<shiro.version>1.4.0</shiro.version>
+		<thymeleaf.version>3.0.2.RELEASE</thymeleaf.version>
+		<thymeleaf-layout-dialect.version>2.0.4</thymeleaf-layout-dialect.version>
+
+	</properties>
+
+
+	<!-- 继承spring-boot-starter-parent后我们可以继承一些默认的依赖，这样就无需添加一堆相应的依赖，把依赖配置最小化； -->
+	<!-- 基础容器 -->
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.5.2.RELEASE</version>
+	</parent>
+
+	<dependencies>
+
+
+		<!-- spring-boot-starter-web提供了对web的支持 -->
+		<!-- spring webmvc annotation -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+
+		</dependency>
+
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.springframework.session</groupId> -->
+<!-- 			<artifactId>spring-session-data-redis</artifactId> -->
+<!-- 		</dependency> -->
+
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.springframework/spring-aop -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.aspectj/aspectjweaver -->
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+		<!-- gson -->
+		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.eclipse.paho/org.eclipse.paho.client.mqttv3 -->
+		<dependency>
+			<groupId>org.eclipse.paho</groupId>
+			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.haowen</groupId>
+			<artifactId>haowen-mqtt-boot-starter</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk16 -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk16</artifactId>
+			<version>1.46</version>
+		</dependency>
+		<dependency>
+			<groupId>com.haowen</groupId>
+			<artifactId>sn-gernerator</artifactId>
+			<version>1.0</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter -->
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-starter</artifactId>
+			<version>1.3.2</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.baomidou/mybatis-plus -->
+		<!-- https://mvnrepository.com/artifact/com.baomidou/mybatis-plus-boot-starter -->
+		<dependency>
+			<groupId>com.baomidou</groupId>
+			<artifactId>mybatis-plus-boot-starter</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<!-- html template -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<!-- redis -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		<!-- shiro -->
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-spring-boot-starter</artifactId>
+			<version>${shiro.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.crazycake/shiro-redis -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.crazycake</groupId> -->
+		<!-- <artifactId>shiro-redis</artifactId> -->
+		<!-- <version>1.0.0-RELEASE</version> -->
+		<!-- </dependency> -->
+
+		<!-- https://mvnrepository.com/artifact/org.apache.shiro/shiro-event -->
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-event</artifactId>
+			<version>${shiro.version}</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload -->
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.3.2</version>
+		</dependency>
+
+		<!-- web jars -->
+		<!-- 引用bootstrap -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.webjars</groupId> -->
+		<!-- <artifactId>bootstrap</artifactId> -->
+		<!-- <version>3.3.7-1</version> -->
+		<!-- </dependency> -->
+
+		<!-- 引用jquery -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.webjars</groupId> -->
+		<!-- <artifactId>jquery</artifactId> -->
+		<!-- <version>3.1.1</version> -->
+		<!-- </dependency> -->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+
+		<!-- 本地jar，阿里大于JAR -->
+		<dependency>
+			<groupId>my-jar</groupId>
+			<artifactId>my-jar2</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/taobao-sdk-java-auto_1455552377940-20160607.jar</systemPath>
+		</dependency>
+
+
+
+		<!-- 后期删除 start -->
+
+		<!-- 支持开发过程的热部署 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+		</dependency>
+		<!-- 通过单元测试来验证BlogProperties中的属性是否已经根据配置文件加载了。 -->
+		<!-- 引入单元测试依赖： -->
+		<!-- spring boot 单元测试. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity-engine-core</artifactId>
+			<version>2.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/net.sourceforge.javacsv/javacsv -->
+		<dependency>
+			<groupId>net.sourceforge.javacsv</groupId>
+			<artifactId>javacsv</artifactId>
+			<version>2.0</version>
+		</dependency>
+
+		<!-- 后期删除 end -->
+
+	</dependencies>
+
+	<build>
+		<defaultGoal>compile</defaultGoal>
+
+
+		<plugins>
+
+
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/lib</outputDirectory>
+							<excludeTransitive>false</excludeTransitive>
+							<stripVersion>false</stripVersion>
+							<includeScope>runtime</includeScope>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<!-- 添加index则不从mainfest中读取classpath，而是从Index.list中读取 -->
+						<!-- <index>true</index> -->
+						<manifest>
+							<mainClass>com.gzseeing.SpringBootMain</mainClass>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>3rd-lib/</classpathPrefix>
+						</manifest>
+						<manifestEntries>
+							<Class-Path>./</Class-Path>
+						</manifestEntries>
+					</archive>
+					<excludes>
+						<exclude>**/*.properties</exclude>
+						<exclude>**/*.xml</exclude>
+						<exclude>**/*.yml</exclude>
+						<exclude>**/*.ini</exclude>
+						<exclude>**/*.bat</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+
+			<!-- package as a runnable jar HAOWEN -->
+			<!-- spring-boot-maven-plugin提供了直接运行项目的插件，我们可以直接mvn spring-boot:run运行。 -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<layout>ZIP</layout>
+					<includes>
+						<include>
+							<groupId>non-exists</groupId>
+							<artifactId>non-exists</artifactId>
+						</include>
+					</includes>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+							<classifier>classes</classifier>
+							<attach>false</attach>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<property name="dist">target/distribution</property>
+								<property name="dist-tmp">target/distribution/tmp</property>
+								<property name="app-name">${project.artifactId}-${project.version}</property>
+								<mkdir dir="${dist-tmp}" />
+								<mkdir dir="${dist}/web" />
+								<copy file="target/${app-name}.jar" tofile="${dist-tmp}/${app-name}.jar" />
+								<unzip src="${dist-tmp}/${app-name}.jar" dest="${dist-tmp}" />
+								<delete file="${dist-tmp}/${app-name}.jar" />
+								<!-- 先打包 -->
+								<zip destfile="${dist}/${app-name}-pages.jar">
+									<zipfileset dir="${dist-tmp}/META-INF" prefix="META-INF" />
+									<!-- <zipfileset dir="target/classes/static" prefix="static" /> -->
+									<!-- <zipfileset dir="target/classes/templates" prefix="templates" 
+										/> -->
+								</zip>
+								<unzip src="${dist}/${app-name}-pages.jar" dest="${dist}" />
+
+								<move file="target/${app-name}-classes.jar" todir="${dist}"></move>
+								<move todir="${dist}/3rd-lib">
+									<fileset dir="target/lib" />
+								</move>
+								<delete dir="${dist-tmp}" />
+								<copy todir="${dist}">
+									<fileset dir="target/classes">
+										<include name="**/*.properties" />
+										<include name="**/*.xml" />
+										<include name="**/*.yml" />
+										<include name="**/*.bat" />
+										<include name="**/*.ini" />
+									</fileset>
+								</copy>
+								<delete file="${dist}/${app-name}-pages.jar" />
+								<copy todir="${dist}/web">
+									<fileset dir="web">
+									</fileset>
+								</copy>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>8</source>
+					<target>8</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- 不指定单元测试 -->
+					<skipTests>true</skipTests>
+				</configuration>
+			</plugin>
+
+			<!-- 本地仓添加 插件 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<finalName>xxx-jar-with-dependencies</finalName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+
+	</build>
+
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central22</id>
+			<name>Maven Repository Switchboard</name>
+			<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+		</repository>
+
+	</repositories>
+</project>

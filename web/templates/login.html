@@ -1,0 +1,57 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<script   th:inline="javascript">
+var GVAR=GVAR||{};
+GVAR.ctx =[[${#httpServletRequest.getContextPath()}]]+"/";
+</script>
+<meta charset="UTF-8">
+<title>登录</title>
+<style type="text/css">
+
+.center {
+	width: 150px;
+	margin-left: auto;
+	margin-right: auto;
+ 
+	
+}
+
+</style>
+</head>
+<script   th:src="@{/js/jquery-1.11.2.min.js}"></script>
+<body>
+ 
+<div  class="center">
+		<form id="loginForm" name="loginForm"    method="post">
+		 	username：<input name="username"  type="text" ><br>
+			password：<input name="password"  type="password" ><br>
+			<input type="button" value="login" onclick="login()">
+		</form>
+</div>
+
+
+
+<script type="text/javascript">
+function login(){
+ 	$.ajax({
+		type:"POST",
+		url:  GVAR.ctx+"api/web/entry/login",					
+		data: $(loginForm).serialize(),
+		async:true,
+		error:function(request){
+			
+		},
+		success:function(data){
+ 			if  (data.result){
+			    console.log(data);
+				window.location.reload();
+			}else{
+				alert("login fail!password or username is incorrect.");
+			}
+		}
+	});
+}
+</script>
+</body>
+</html>

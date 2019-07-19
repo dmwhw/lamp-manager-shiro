@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>固件上传--临时页</title>
+</head>
+<body>
+
+本页面提供测试过程中，更改 OTA固件的页面。<br>
+型号是lamp_v1，名称为第二代智能台灯1.0  modelId为2。更改目标版本为1.1<br>
+目前远程文件信息：
+<div id="remoteFileInfo">
+</div>
+
+<br>
+替换
+<form id="uploadForm"  enctype="multipart/form-data" method="post">
+	<input type="file" name="file">
+	 <button type="button" onclick="TMPupload.uploadFirmFile()">提交</button>
+</form>
+</body>
+<script type="text/javascript">
+var TMPupload={
+	 getRemoteFirmFile : function(){
+
+	        $.ajax({
+	            type: "POST",
+	            url: GVAR.ctx + "api/web/firm-file/v2-info-tmp",
+ 	            async: true,
+	            error: function (request) {
+ 
+	            },
+	            success:function (data) {
+ 	            	console.log(data);
+ 					if (data&&data.data){
+ 						$("#remoteFileInfo").html(JSON.stringify( data.data));
+ 					}
+	            }
+
+	        });
+	 },
+	 uploadFirmFile :function(){
+		var form =new FormData($("#uploadForm")[0]);
+		 $.ajax({
+			type:"POST",
+			url:   GVAR.ctx+"api/web/firm-file/upload-v2-tmp",					
+			data:  form,
+		    dataType: 'JSON',
+		    cache: false,                      // 不缓存
+		    processData: false,                // jQuery不要去处理发送的数据
+		    contentType: false,                // jQuery不要去设置Content-Type请求头
+			error:function(request){
+				
+			},
+			success:function(data){
+				console.log(data);
+				if (data.msgCode=="10000"){
+					alert("操作成功");
+					$("#uploadForm")[0].reset();
+				}else{
+					alert("操作失败"+data.msg);
+				}
+			}
+		});
+	}
+		
+};
+TMPupload.getRemoteFirmFile();
+</script>
+</html>

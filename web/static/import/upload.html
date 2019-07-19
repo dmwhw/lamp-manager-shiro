@@ -1,0 +1,397 @@
+    <input type="file" name="xlfile" id="xlf" accept="application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"  style="display: none;"/>
+ 
+    <div id="drop2"  style="height: 100%">
+         <table id="wrongListTab"     style="height: 100%" data-options="
+                    rownumbers:true,
+                    singleSelect:true,
+                    autoRowHeight:false,
+                    pagination:true,
+                    pageSize:10">
+            <thead>
+                <tr>
+                    <th field="line" width="60" align="center">行数</th>
+                    <th field="mac" width="300" align="center">MAC地址</th>
+                    <th field="code" width="300" align="center">台灯型号代码</th>
+                    <th field="reason" width="305" align="center">错误原因</th>
+                </tr>
+            </thead>
+        </table>
+  </div>
+ 
+<script type="text/javascript">
+    loadJs("import/jszip.js",
+            "import/xlsx.js");
+</script>
+<script type="text/javascript">
+ 
+    var importMac={
+    	init:function(){
+    		  $('#wrongListTab').datagrid({ toolbar: importMac.importToolBar,emptyMsg:"请导入文件" }); 
+    		  
+    		  
+    		    (function($){
+    		        function pagerFilter(data){
+    		            if ($.isArray(data)){    // is array
+    		                data = {
+    		                    total: data.length,
+    		                    rows: data
+    		                }
+    		            }
+    		            var target = this;
+    		            var dg = $(target);
+    		            var state = dg.data('datagrid');
+    		            var opts = dg.datagrid('options');
+    		            if (!state.allRows){
+    		                state.allRows = (data.rows);
+    		            }
+    		            if (!opts.remoteSort && opts.sortName){
+    		                var names = opts.sortName.split(',');
+    		                var orders = opts.sortOrder.split(',');
+    		                state.allRows.sort(function(r1,r2){
+    		                    var r = 0;
+    		                    for(var i=0; i<names.length; i++){
+    		                        var sn = names[i];
+    		                        var so = orders[i];
+    		                        var col = $(target).datagrid('getColumnOption', sn);
+    		                        var sortFunc = col.sorter || function(a,b){
+    		                            return a==b ? 0 : (a>b?1:-1);
+    		                        };
+    		                        r = sortFunc(r1[sn], r2[sn]) * (so=='asc'?1:-1);
+    		                        if (r != 0){
+    		                            return r;
+    		                        }
+    		                    }
+    		                    return r;
+    		                });
+    		            }
+    		            var start = (opts.pageNumber-1)*parseInt(opts.pageSize);
+    		            var end = start + parseInt(opts.pageSize);
+    		            data.rows = state.allRows.slice(start, end);
+    		            return data;
+    		        }
+
+    		        var loadDataMethod = $.fn.datagrid.methods.loadData;
+    		        var deleteRowMethod = $.fn.datagrid.methods.deleteRow;
+    		        $.extend($.fn.datagrid.methods, {
+    		            clientPaging: function(jq){
+    		                return jq.each(function(){
+    		                    var dg = $(this);
+    		                    var state = dg.data('datagrid');
+    		                    var opts = state.options;
+    		                    opts.loadFilter = pagerFilter;
+    		                    var onBeforeLoad = opts.onBeforeLoad;
+    		                    opts.onBeforeLoad = function(param){
+    		                        state.allRows = null;
+    		                        return onBeforeLoad.call(this, param);
+    		                    }
+    		                    var pager = dg.datagrid('getPager');
+    		                    pager.pagination({
+    		                        onSelectPage:function(pageNum, pageSize){
+    		                            opts.pageNumber = pageNum;
+    		                            opts.pageSize = pageSize;
+    		                            pager.pagination('refresh',{
+    		                                pageNumber:pageNum,
+    		                                pageSize:pageSize
+    		                            });
+    		                            dg.datagrid('loadData',state.allRows);
+    		                        }
+    		                    });
+    		                    $(this).datagrid('loadData', state.data);
+    		                    if (opts.url){
+    		                        $(this).datagrid('reload');
+    		                    }
+    		                });
+    		            },
+    		            loadData: function(jq, data){
+    		                jq.each(function(){
+    		                    $(this).data('datagrid').allRows = null;
+    		                });
+    		                return loadDataMethod.call($.fn.datagrid.methods, jq, data);
+    		            },
+    		            deleteRow: function(jq, index){
+    		                return jq.each(function(){
+    		                    var row = $(this).datagrid('getRows')[index];
+    		                    deleteRowMethod.call($.fn.datagrid.methods, $(this), index);
+    		                    var state = $(this).data('datagrid');
+    		                    if (state.options.loadFilter == pagerFilter){
+    		                        for(var i=0; i<state.allRows.length; i++){
+    		                            if (state.allRows[i] == row){
+    		                                state.allRows.splice(i,1);
+    		                                break;
+    		                            }
+    		                        }
+    		                        $(this).datagrid('loadData', state.allRows);
+    		                    }
+    		                });
+    		            },
+    		            getAllRows: function(jq){
+    		                return jq.data('datagrid').allRows;
+    		            }
+    		        })
+    		    })(jQuery);
+    	},
+    	initExecl : function () {
+            var xlf = document.getElementById('xlf');
+            var drop = document.getElementById('drop2');
+            drop.addEventListener("dragenter", importMac.handleDragover, false);
+            drop.addEventListener("dragover", importMac.handleDragover, false);
+            drop.addEventListener("drop", importMac.onDropDown, false);
+ 
+            $(xlf).change(function(){
+                if(xlf.files.length > 0){
+                	importMac.handFile(xlf.files[0]);
+                }
+            });
+ 
+        },
+        fnImportFile : function(){
+            if(importMac.file != null){
+            	importMac.flag = "import";
+                importMac.readFile();
+                $("#importMacFileText").linkbutton({"text":importMac.file.name});
+                debugger;
+            }else{
+                alert("请选择文件！！");
+            }
+        },
+        fnCheckFile : function(){
+            if(importMac.file != null){
+            	importMac.flag = "check";
+                importMac.readFile();
+            }else{
+                alert("请选择文件！！");
+            }
+        },
+        fnDownloadTemplate : function(){
+        	window.open(GVAR.ctx + "api/web/deviceImport/down", "_blank");
+        },
+        getPageBean : function (pageIndex, pageSize){
+            var table = $("#errorTable");
+            var data = table.data("macs");
+            var wrong = table.data("wrong");
+            var repeat = table.data("repeat");
+            var exit = table.data("exit");
+            var all = wrong.concat(repeat).concat(exit);
+            
+            var totalPage,totalCount,pageStart,pageEnd;
+            totalCount = all.length;
+            if (totalCount % pageSize != 0) {
+                totalPage = parseInt(totalCount / pageSize) + 1;
+            } else {
+                totalPage = parseInt(totalCount / pageSize);
+            }
+            if (pageIndex <= 0) {
+                pageIndex = 1;
+            }
+            if (pageIndex > totalPage) {
+                pageIndex = totalPage;
+            }
+            pageStart = pageSize * (pageIndex - 1);
+            if (pageStart < 0 ) {
+                pageStart = 0;
+            }
+            pageEnd = pageSize * pageIndex - 1;
+            if (pageEnd >= totalCount) {
+                pageEnd = totalCount - 1;
+            }
+            var pageBean = new Object();
+            pageBean.list = [];
+            pageBean.totalPage = totalPage;
+            pageBean.totalCount = totalCount;
+            pageBean.pageStart = pageStart;
+            pageBean.pageEnd = pageEnd;
+            pageBean.pageIndex = pageIndex;
+            pageBean.pageSize = pageSize;
+            for(var i = pageStart; i <= pageEnd; i++){
+                var mac = new Object();
+                mac.line = all[i] + 1;
+                mac.mac = data[all[i]];
+                if(wrong.indexOf(all[i]) != -1){
+                    mac.reason = "MAC格式错误";
+                }else if(repeat.indexOf(all[i]) != -1){
+                    mac.reason = "MAC重复";
+                }else if(exit.indexOf(all[i]) != -1){
+                    mac.reason = "数据库存在相同的MAC";
+                }
+                pageBean.list.push(mac);
+            }
+            table.createTable(pageBean, importMac.getPageBean);
+        },
+         file:null,
+        flag : "",
+        
+         handleDragover : function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        },
+
+         onDropDown : function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            var files = e.dataTransfer.files;
+            importMac.handFile(files[0]);
+        },
+        
+        handFile : function (f){
+            var fileName = f.name;
+            var index = fileName.lastIndexOf(".");
+            var ext = fileName.substr(index+1);
+            if("xlsx" == ext || "xls" == ext){
+            	importMac.file = f;
+                $("#importMacFileText").linkbutton({"text":importMac.file.name});
+            }else{
+                alert("请选择excel文件！");
+                $("#xlf").empty();
+            }
+        },
+        
+        readFile : function () {
+            var name =importMac.file.name;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var data = e.target.result;
+                var wb = XLSX.read(data, {
+                    type : "binary"
+                });
+                
+                importMac.handTable(wb);
+            };
+            reader.readAsBinaryString(importMac.file);
+        },
+        
+         handTable: function(wb){
+            var sheet = wb.Sheets.台灯列表;
+            if(!sheet){
+            	alert("未读取到台灯列表");
+            	return;
+            }
+            var formdata = new FormData(); 
+            var macs = new Array();
+            var codes = new Array();
+            for(var i in sheet){
+                var v = sheet[i].v;
+                if(typeof v == "string"){
+                	if(v != "MAC地址" && v != "台灯型号代码"){
+    	            	if(i.startWith("A")){
+    		                macs.push(sheet[i].v.trim());
+    	            	}else if(i.startWith("B")){
+    	            		codes.push(sheet[i].v.trim());
+    	            	}
+                	}
+                }
+            }
+            if(macs.length != codes.length){
+            	alert("MAC地址与台灯型号代码长度不一致");
+            	return;
+            }
+            formdata.append("macs",macs);
+            formdata.append("codes",codes);
+            formdata.append("file",importMac.file);
+            $.ajax({
+                url : GVAR.ctx + "api/web/deviceImport/" +importMac.flag,
+                type : "POST",
+                traditional : true,
+                processData : false, 
+                contentType : false, 
+                dataType : "json",
+                data : formdata,
+                success : function(data){
+                    var exit = data.data.exit;
+                    var wrongCode = data.data.wrongCode;
+                    var repeat = data.data.repeat;
+                    var wrong = data.data.wrong;
+                    if(exit && (exit.length != 0 || repeat.length != 0 || wrong.length != 0 || wrongCode.length != 0)){
+                    	importMac.createTable(wrong, repeat, exit, wrongCode, macs, codes);
+                    }else{
+                        //$("#tableDiv").hide();
+                        if(importMac.flag == "check"){
+                            alert("文件未发现错误，可以导入！");
+                            importMac.createTable(wrong, repeat, exit, wrongCode, macs, codes);
+                        }else if(importMac.flag = "import"){
+                            if(exit){
+                                alert("导入成功！");
+                            }else{
+                                alert("系统繁忙！");
+                            }
+                        }
+                    }
+                },
+                error : function(e){
+                    console.log(e);
+                }
+            });
+        },
+        
+        createTable : function (wrong, repeat, exit, wrongCode, macs, codes) {
+            var rows = [];
+            for(var i = 0; i < wrong.length; i++){
+                rows.push({
+                    line: wrong[i] + 2,
+                    mac: macs[wrong[i]],
+                    code: codes[wrong[i]],
+                    reason: "MAC格式错误",
+                });
+            }
+            for(var i = 0; i < repeat.length; i++){
+                rows.push({
+                    line: repeat[i] + 2,
+                    mac: macs[repeat[i]],
+                    code: codes[repeat[i]],
+                    reason: "excel存在重复数据",
+                });
+            }
+            for(var i = 0; i < exit.length; i++){
+                rows.push({
+                    line: exit[i] + 2,
+                    mac: macs[exit[i]],
+                    code: codes[exit[i]],
+                    reason: "数据库中存在相同数据",
+                });
+            }
+            for(var i = 0; i < wrongCode.length; i++){
+                rows.push({
+                    line: wrongCode[i] + 2,
+                    mac: macs[wrongCode[i]],
+                    code: codes[wrongCode[i]],
+                    reason: "台灯型号代码错误",
+                });
+            }
+            //$("#tableDiv").show();
+            $('#wrongListTab').datagrid({data:rows,emptyMsg:"未发现错误"}).datagrid('clientPaging');
+            $("#importMacFileText").linkbutton({"text":importMac.file.name});
+
+        },
+      
+		//------------------------------ui----------------
+		//改变表格宽高
+		domresize : function (){
+			$('#mainContent').tabs('resize',{ 
+			 	height:$("#mainContent").height(),
+				width:$("#mainContent").width()
+			});
+				
+			$('#drop2').datagrid('resize',{ 
+				height:$("#mainContent").height()-$("#mainContent").children(":first").height()-5,
+				width:$("#mainContent").width()
+			});
+		 }
+    		
+    		
+    };
+    
+    
+    
+    importMac.importToolBar =
+    	[
+   	 	  {text:'1.下载模板',id:"importMacDownloadTemplateBtn",iconCls:'icon-large-smartart', handler: importMac.fnDownloadTemplate  }, 
+    	  {text:'2.上传文件[或拖拽到本表格]',id:"importMacUploadBtn",iconCls:'icon-add', handler:function(){ $("#xlf")[0].click()} }, 
+    	  {text:'未选择文件...',id:"importMacFileText"  ,handler: null },
+    	  {text:'3.检查',id:"importMacCheckBtn",iconCls:'icon-search',handler: importMac.fnCheckFile },
+    	  {text:'4.导入',id:"importMacConfirmBtn", iconCls:'icon-save',handler: importMac.fnImportFile}
+    	];
+    
+    importMac.init();
+    importMac.initExecl();
+    addResizeFunction(importMac.domresize);
+</script>

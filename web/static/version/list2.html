@@ -1,0 +1,407 @@
+
+<table   id="versionListTab"  style="height: 100%"
+        data-options="fitColumns:true,
+        			singleSelect:true
+        			" 
+        	iconCls="icon-save"
+            rownumbers="true" toolbar="#versionListToolbar">
+
+</table>
+
+
+<!-- 版本的工具栏  -->
+<div id="versionListToolbar" style="padding:2px 5px;display: none;">
+版本名称: <input class="easyui-textbox" style="width:110px" id="username">
+发布日: <input class="easyui-datebox" id="start" style="width:110px" data-options="formatter:dateToyyyyMMddFormatter,parser:yyyyMMddToDateParser">
+至: <input class="easyui-datebox" id="end" style="width:110px" data-options="formatter:dateToyyyyMMddFormatter,parser:yyyyMMddToDateParser">
+
+状态: 
+      <select class="easyui-combobox" panelHeight="auto" style="width:100px" id="status">
+          <option value="">全部</option>
+          <option value="0">提交</option>
+          <option value="1">已发布</option>
+      </select>
+
+      <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="refresh()">Search</a>
+</div>
+
+
+<!-- 文件列表窗口 -->
+<div id="firmFileListWindow" style="display: none;width:900px;height:400px">
+	<input type="hidden" id="versionId">
+	<input type="hidden" id="status">
+	<table   id="firmFileTab"  style="height: 100%;width: 100%"
+	        data-options="fitColumns:true,
+	        			singleSelect:true
+	        			" 
+	        	iconCls="icon-save"
+	            rownumbers="true"  >
+	</table>
+
+</div>
+<!-- -------------------------------------addstart--------------------------------------- -->
+<!-- 文件上传模态框 -->
+<div id="addFirmFileDialog" style="width:610px;height:450px;display: none;">
+	 <table id="addFirmFileTab"   style="width:100%;height:100%"> </table>
+</div>
+<!-- -------------------------------------add end--------------------------------------- -->
+
+
+
+<!-- --------------------------------------------------edit start---------------------------- -->
+<div id="editFirmFileDialog">
+	 <table id="editFirmFileTab"   style="width:100%;height:100%"> </table>
+</div>
+<!-- --------------------------------------------------edit end---------------------------- -->
+
+ 
+<script>
+//固件文件上传的toolbar
+var firmFiletoolbar = 
+	[
+	  {text:'Add',id:"firmFileAddBtn",iconCls:'icon-add', handler:_uiShowAddFirmFileDialog}, 
+	  {text:'Edit',id:"firmFileEditBtn",iconCls:'icon-edit',handler:_uiShowEditFirmFileDialog},
+	  {text:'删除',id:"firmFileDelBtn", iconCls:'icon-remove',handler:_uiShowDelFirmFileConfirmDialog}
+	];
+
+//启用
+//$('#addId').linkbutton("enable");  
+//显示    
+//$('#addId').show();  
+
+var addFirmFileToolBar=
+	[
+	  {text:'Add',id:"firmFileAddBtn",iconCls:'icon-add', plain:true,handler : append}, 
+	  {text:'删除',id:"firmFileDelBtn", iconCls:'icon-remove', plain:true,handler :removeit},
+	  {text:'保存',id:"firmFileAddBtn",iconCls:'icon-save',  plain:true,handler: accept}, 
+	  {text:'撤销',id:"firmFileAddBtn",iconCls:'icon-undo',  plain:true,handler:reject}, 
+	  {text:'查看更改',id:"firmFileEditBtn",iconCls:'icon-search', plain:true,handler:getChanges},
+	];
+ 
+var editFirmFileToolBar=
+	[
+	  {text:'保存',id:"firmFileAddBtn",iconCls:'icon-save',  plain:true,handler: accept}, 
+	  {text:'撤销',id:"firmFileAddBtn",iconCls:'icon-undo',  plain:true,handler:reject}, 
+	  {text:'查看更改',id:"firmFileEditBtn",iconCls:'icon-search', plain:true,handler:getChanges},
+	];
+ 
+
+/////////////////////////////////////////////////////////////////////////
+function btnFormatter(val,row,index){
+	return "<a href='#' onclick='viewFirmFiles("+row.id+","+row.status+")'>显示固件列表</a>"+
+	(row.status==0?"&nbsp; <a href='#' onclick='viewFirmFiles("+row.id+")'>发布</a>":"");
+	
+}
+function updateTypeFormatter(val,row,index){
+	if (row.type==0){
+		return "无需更新";
+	}else if (row.type==1){
+		return "可选更新";
+
+	}else if (row.type==2){
+		return "建议更新";
+
+	}else if (row.type==4){
+		return "公测版本";
+	}
+}
+function statusFormatter(val,row,index){
+	if (row.status==0){
+		return "提交";
+	}else if (row.status==1){
+		return "已发布";
+
+	}
+}
+//////////////////////////////////////////////////////////////////////////
+function viewFirmFiles(versionId,status){	
+	$("#firmFileListWindow #versionId").val(versionId);
+	$("#firmFileListWindow #status").val(status);
+
+	$('#firmFileListWindow').window({
+		title:"固件文件列表",
+	    modal:true
+	});
+
+	refreshFirmFileList();
+}
+
+function getQueryParams(){
+	var queryParams = {};
+	if($("#username").val())
+	queryParams.username = $("#username").val();
+	if($("#start").val())
+	queryParams.start = $("#start").val();
+	if($("#end").val())
+	queryParams.end = $("#end").val();
+	if($("#status").val())
+	queryParams.status = $("#status").val();
+	return queryParams;
+}
+
+ 
+
+//初始化表格
+function initDataGrid(){
+	$('#versionListTab').datagrid({
+	     pageList:[10,15,20,25,30],
+	     pageSize:20,
+	     pagination:true,
+	     loadMsg:"加载中..."
+	});
+	$('#versionListTab').datagrid('getPager').pagination({
+	    layout:['list','sep','first','prev','sep',$('#versionListTab #p-style').val(),'sep','next','last','sep','refresh','info']
+	});
+	
+	
+ 
+	 
+	$('#firmFileTab').datagrid({
+	     pageList:[10,15,20,25,30],
+	     pageSize:20,
+	     pagination:true,
+	     loadMsg:"加载中...",
+	     columns:[[
+			{field:'versionId',title:'版本id' },
+	        {field:'name',title:'名称' },
+	        {field:'firmwareFileType',title:'filType(hex)' },
+	        {field:'firmwareFileIndex',title:'fileIndex(hex)' },
+	        {field:'checkSum',title:'checksum(hex)' },
+	        {field:'fileLength',title:'大小(byte)' },
+	        {field:'flashAddr',title:'写入地址(hex)' },
+	        {field:'uploadDate',title:'上传时间',formatter:timestampToyyyyMMddHHmmssFormatter},
+	        {field:'userId',title:'userId' },
+	        {field:'remark',title:'备注',width:20}
+	    ]]
+	});
+	$('#firmFileTab').datagrid('getPager').pagination({
+	    layout:['list','sep','first','prev','sep',$('#firmFileTab #p-style').val(),'sep','next','last','sep','refresh','info']
+	});
+
+
+}
+
+ 
+//刷新版本列表pageBean
+function refresh(){
+ 
+	$('#versionListTab').datagrid({
+		url : GVAR.ctx + "api/software-version/pagebean",
+		pagePosition:$('#versionListTab #p-pos').val(),
+		queryParams:getQueryParams(),
+		fitColumns:true,
+	    emptyMsg:'无数据显示',
+	    columns:[[
+	   	        {field:'id',title:'版本id' },
+	   	        {field:'modelNoId',title:'型号id'  },
+	   	        {field:'versionName',title:'版本名称'  },
+	   	        {field:'mainVersion',title:'主版本'  },
+	   	        {field:'subVersion',title:'子版本'  },
+	   	        {field:'androidMinVersion',title:'安卓最低版本'  },
+	   	        {field:'iosMinVersion',title:'IOS最低版本'  },
+	   	        {field:'type',title:'更新选项',formatter: updateTypeFormatter  },
+	   	        {field:'status',title:'状态',formatter: statusFormatter },
+	   	        {field:'postTime',title:'提交时间' ,formatter:timestampToyyyyMMddHHmmssFormatter},
+	   	     	{field:'publishDate',title:'发布日' ,formatter:timestampToyyyyMMddFormatter },
+	   	 		{field:'_operate',title:'操作',formatter:btnFormatter  },
+	   	  		{field:'remark',title:'版本说明'  }
+ 	   	    ]]
+	});
+
+}
+
+//刷新固件文件列表
+function refreshFirmFileList(){
+	var queryParams = {};
+	queryParams.versionId = $("#firmFileListWindow #versionId").val();
+ 	var toolbar=null;
+	if (''+$("#firmFileListWindow #status").val()!='1'){
+		toolbar=firmFiletoolbar
+	}
+ 	$('#firmFileTab').datagrid({
+		toolbar : toolbar,
+	    emptyMsg:'无数据显示',
+		url : GVAR.ctx + "api/firm-file/pagebean",
+		pagePosition:$('#firmFileListWindow #p-pos').val(),
+		queryParams: queryParams,
+	});
+
+}
+
+
+
+initDataGrid();
+refresh();
+
+//-----------------------------------------------firmFileListWindowToolbar start ------------------------
+
+function _uiShowAddFirmFileDialog(){
+                
+   	$('#addFirmFileTab').datagrid({
+		iconCls: 'icon-edit',
+        singleSelect: true,
+        onClickCell: onClickCell,
+        onEndEdit: onEndEdit,
+        toolbar :addFirmFileToolBar,
+        columns:[[
+        	    {field:'file',title:'文件名',width:100,editor:'textbox',name: 'file' },
+      	        {field:'name',title:'名称',width:100,editor:'textbox', name:'name'},
+      	        {field:'firmwareFileType',title:'filType(hex)',width:100,editor:'textbox' ,name:'firmwareFileType'},
+      	        {field:'firmwareFileIndex',title:'fileIndex(hex)',width:100,editor:'textbox' ,name :'firmwareFileIndex' },
+      	        {field:'flashAddr',title:'写入地址(hex)',width:100 ,editor:'textbox',name : 'flashAddr'},
+      	        {field:'remark',title:'备注' , width:100,editor:'textbox', name :'remark' }
+      	    ]]
+ 	  }); 
+   	reject();
+   	append();
+	$("#addFirmFileDialog").dialog({
+	    title: '增加固件文件',
+	    iconCls:'icon-add',
+	    closed: true,
+	    modal: true
+	});
+	$("#addFirmFileDialog").dialog('open');
+	
+
+}
+function _uiShowEditFirmFileDialog(){
+	
+   	$('#editFirmFileTab').datagrid({
+		iconCls: 'icon-edit',
+        singleSelect: true,
+        onClickCell: onClickCell,
+        onEndEdit: onEndEdit,
+        toolbar :addFirmFileToolBar,
+        columns:[[
+        	    {field:'file',title:'文件名',width:100,editor:'textbox',name: 'file' },
+      	        {field:'name',title:'名称',width:100,editor:'textbox', name:'name'},
+      	        {field:'firmwareFileType',title:'filType(hex)',width:100,editor:'textbox' ,name:'firmwareFileType'},
+      	        {field:'firmwareFileIndex',title:'fileIndex(hex)',width:100,editor:'textbox' ,name :'firmwareFileIndex' },
+      	        {field:'flashAddr',title:'写入地址(hex)',width:100 ,editor:'textbox',name : 'flashAddr'},
+      	        {field:'remark',title:'备注' , width:100,editor:'textbox', name :'remark' }
+      	    ]]
+ 	  });
+   	
+   	append();
+	$("#editFirmFileDialog").dialog({
+	    title: '编辑固件文件',
+	    iconCls:'icon-add',
+	    closed: true,
+	    modal: true
+	});
+	$("#editFirmFileDialog").dialog('open');
+	
+}
+function _uiShowDelFirmFileConfirmDialog(){
+	var rowData=$("#firmFileTab").datagrid('getSelected');
+	if (rowData){
+		$.messager.confirm({
+			title: '询问',
+			msg: '确定要删除当前文件吗',
+			fn: function(r){
+				if (r){
+					 $.ajax({
+								type:"POST",
+								url:   GVAR.ctx+"api/firm-file/del",					
+								data: {firmFileId:rowData.id},
+								async:true,
+								error:function(request){
+									
+								},
+								success:function(data){
+									
+								}
+							
+							});
+				}
+			}
+		});
+	}
+}
+//-----------------------------------------------firmFileListWindowToolbar end------------------------
+
+
+//------------------------------------add firmFile end ----------------------------
+	        var editIndex = null;
+	        
+	        function endEditing(){
+	            if (editIndex == null){return true}
+	            if ($('#addFirmFileTab').datagrid('validateRow', editIndex)){
+	                $('#addFirmFileTab').datagrid('endEdit', editIndex);
+	                editIndex = null;
+	                return true;
+	            } else {
+	                return false;
+	            }
+	        }
+	        function onClickCell(index, field){
+	            if (editIndex != index){
+	                if (endEditing()){
+	                    $('#addFirmFileTab').datagrid('selectRow', index)
+	                            .datagrid('beginEdit', index);
+	                    var ed = $('#addFirmFileTab').datagrid('getEditor', {index:index,field:field});
+	                    if (ed){
+	                        ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+	                    }
+	                    editIndex = index;
+	                } else {
+	                    setTimeout(function(){
+	                        $('#addFirmFileTab').datagrid('selectRow', editIndex);
+	                    },0);
+	                }
+	            }
+	        }
+	        function onEndEdit(index, row){
+	            var ed = $(this).datagrid('getEditor', {
+	                index: index,
+	                field: 'productid'
+	            });
+	            //row.productname = $(ed.target).combobox('getText');
+	        }
+	        function append(){
+	            if (endEditing()){
+	                $('#addFirmFileTab').datagrid('appendRow',{});
+	                editIndex = $('#addFirmFileTab').datagrid('getRows').length-1;
+	                $('#addFirmFileTab').datagrid('selectRow', editIndex)
+	                        .datagrid('beginEdit', editIndex);
+	            }
+	        }
+	        function removeit(){
+	            if (editIndex == undefined){return}
+	            $('#addFirmFileTab').datagrid('cancelEdit', editIndex)
+	                    .datagrid('deleteRow', editIndex);
+	            editIndex = null;
+	        }
+	        function accept(){
+	            if (endEditing()){
+	                $('#addFirmFileTab').datagrid('acceptChanges');
+	            }
+	        }
+	        function reject(){
+	            $('#addFirmFileTab').datagrid('rejectChanges');
+	            editIndex = null;
+	        }
+	        function getChanges(){
+	            var rows = $('#addFirmFileTab').datagrid('getChanges');
+	            alert(rows.length+' rows are changed!');
+	        }
+//------------------------------------add firmFile end -----------------------------
+
+
+//监听窗口大小变化
+window.onresize = function(){
+	setTimeout(domresize,300);
+};
+//改变表格宽高
+function domresize(){
+$('#mainContent').tabs('resize',{ 
+ height:$("#mainContent").height(),
+	width:$("#mainContent").width()
+});
+	
+$('#versionListTab').datagrid('resize',{ 
+	height:$("#mainContent").height()-$("#mainContent").children(":first").height()-5,
+	width:$("#mainContent").width()
+});
+ }
+</script>

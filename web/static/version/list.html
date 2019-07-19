@@ -1,0 +1,227 @@
+
+<table   id="versionListTab"  style="height: 100%"
+        data-options="fitColumns:true,
+        			singleSelect:true
+        			" 
+        	iconCls="icon-save"
+            rownumbers="true" toolbar="#versionListToolbar">
+
+</table>
+
+
+<!-- 版本的工具栏  -->
+<div id="versionListToolbar" style="padding:2px 5px;display: none;">
+	<div>
+			<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="versionList.uiShowAddVersionDialog()">添加</a>
+			<a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="versionList.uiShowEditVersionDialog()">编辑</a>
+			<a href="#" class="easyui-linkbutton" iconCls="icon-cut" plain="true" onclick="versionList.fnDelVersionDialog()">删除</a>
+
+	</div>
+	<div>
+	<span style="font-weight:bold">查询条件:</span>
+	版本名称: <input class="easyui-textbox" style="width:110px" id="username">
+	发布日: <input class="easyui-datebox" id="start" style="width:110px" data-options="formatter:dateToyyyyMMddFormatter,parser:yyyyMMddToDateParser">
+	至: <input class="easyui-datebox" id="end" style="width:110px" data-options="formatter:dateToyyyyMMddFormatter,parser:yyyyMMddToDateParser">
+	
+	状态: 
+	      <select class="easyui-combobox" panelHeight="auto" style="width:100px" id="status">
+	          <option value="">全部</option>
+	          <option value="0">提交</option>
+	          <option value="1">已发布</option>
+	      </select>
+	
+	      <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="versionList.refreshVersionList()">Search</a>
+	</div>
+</div>
+
+
+<!-- 文件列表窗口 -->
+<div id="firmFileListWindow" style="display: none;width:900px;height:400px">
+	<input type="hidden" id="versionId">
+	<input type="hidden" id="status">
+	<table   id="firmFileTab"  style="height: 100%;width: 100%"
+	        data-options="fitColumns:true,
+	        			singleSelect:true
+	        			" 
+	        	iconCls="icon-save"
+	            rownumbers="true"  >
+	</table>
+
+</div>
+
+
+<!-- -------------------------------------add-version-start--------------------------------------- -->
+
+<div id="addVersionDialog" style="width:450px;height:540px;display: none;">
+	   <form id="addVersionForm" name="addVersionForm" method="post"    class="easyui-form" style="margin: 10px">
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div>台灯型号:</div> 
+	        <input class="easyui-combobox easyui-validatebox " style="width:100%;" id="modelNoId"  name="modelNoId" data-options="required:true,prompt:'请选择型号'" />
+	    </div>
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+ 	        <div  >版本名称:</div>  
+	        <input class="easyui-validatebox easyui-textbox" style="width:100%"   id="name_"  name="name_"  data-options="required:true,validType:[ 'length[1,20]'],prompt:'版本名称'" />
+	    </div>
+   	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+    		<div >主版本:</div> 
+	        <input class="easyui-validatebox easyui-numberspinner" value="1" style="width:100%"  id="mainVersion" name="mainVersion" data-options="required:true,min:1,max:100" />
+	    </div>
+	     <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div   >次版本:</div>
+	        <input class="easyui-validatebox easyui-numberspinner" value="0"  style="width:100%"  id="subVersion" name="subVersion" data-options="required:true,min:0,max:100" />
+	    </div>
+	     <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  >安卓最低版本要求:</div>
+	        <input class="easyui-validatebox easyui-combobox"  style="width:100%" type="text"  id="androidMinVersion"  name="androidMinVersion" data-options="required:true,prompt:'请选择安卓APP最低版本'" />
+	    </div>
+	    
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  >苹果最低版本要求:</div>
+	        <input class="easyui-validatebox easyui-combobox"  style="width:100%" type="text" id="iosMinVersion"  name="iosMinVersion" data-options="required:true,prompt:'请选择苹果APP最低版本'" />
+	    </div>
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  style="vertical-align: top" >备注:</div>
+	        <input class="easyui-validatebox easyui-textbox"  style="width:100%;height: 60px" id="remark" name="remark"   data-options="multiline:true,prompt:'备注'"  >
+	    </div>
+	    
+	    <div style="margin-bottom: 5px">
+			<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="versionList.fnAddFirmFile()">确定</a>
+			<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="$(addVersionForm)[0].reset()">清除</a>
+		</div>
+	</form>
+</div>
+<!-- -------------------------------------add version end--------------------------------------- -->
+
+<!-- -------------------------------------edit-version-start--------------------------------------- -->
+<div id="editVersionDialog" style="width:450px;height:540px;display: none;">
+	   <form id="editVersionForm" name="editVersionForm" method="post"    class="easyui-form" style="margin: 10px">
+	   	    <input type="hidden" name="versionId" id="versionId">
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div>台灯型号:</div> 
+	        <input class="easyui-combobox easyui-validatebox " style="width:100%" id="modelNoId"  name="modelNoId" data-options="required:true" />
+	    </div>
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+ 	        <div  >版本名称:</div>  
+	        <input class="easyui-validatebox easyui-textbox" style="width:100%"   id="name_"  name="name_"  data-options="required:true,validType:[ 'length[1,20]'],prompt:'版本名称'" />
+	    </div>
+   	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+    		<div >主版本:</div> 
+	        <input class="easyui-validatebox easyui-numberspinner" value="1" style="width:100%"  id="mainVersion" name="mainVersion" data-options="required:true,min:1,max:100" />
+	    </div>
+	     <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div   >次版本:</div>
+	        <input class="easyui-validatebox easyui-numberspinner" value="0"  style="width:100%"  id="subVersion" name="subVersion" data-options="required:true,min:0,max:100" />
+	    </div>
+	     <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  >安卓最低版本要求:</div>
+	        <input class="easyui-validatebox easyui-combobox"  style="width:100%" type="text"  id="androidMinVersion"  name="androidMinVersion" data-options="required:true" />
+	    </div>
+	    
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  >苹果最低版本要求:</div>
+	        <input class="easyui-validatebox easyui-combobox"  style="width:100%" type="text" id="iosMinVersion"  name="iosMinVersion" data-options="required:true" />
+	    </div>
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  style="vertical-align: top" >备注:</div>
+	        <input class="easyui-validatebox easyui-textbox"  style="width:100%;height: 60px" id="remark" name="remark"   data-options="multiline:true,prompt:'备注'"  >
+	    </div>
+	    
+	    <div style="margin-bottom: 5px">
+			<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="versionList.fnEditFirmFile()">确定</a>
+			<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="$(editVersionForm)[0].reset()">清除</a>
+		</div>
+	</form>
+</div>
+
+<!-- -------------------------------------add version end--------------------------------------- -->
+
+
+
+
+<!-- -------------------------------------addstart--------------------------------------- -->
+
+<!-- 文件上传模态框 -->
+<div id="addFirmFileDialog" style="width:610px;height:480px;display: none;">
+	   <form id="addFirmFileForm" method="post" enctype="multipart/form-data"   class="easyui-form" style="margin: 10px">
+	    <input type="hidden" name="versionId" id="versionId">
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div>文件:</div> 
+	        <input class="easyui-filebox easyui-validatebox " style="width:100%"  name="file" data-options="validType:['requireFile']" />
+	    </div>
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+ 	        <div  >名称:</div>  
+	        <input class="easyui-validatebox easyui-textbox" style="width:100%" type="text" name="name_"  data-options="required:true,validType:[ 'length[1,11]'],prompt:'固件的名称，将会作为信息提供到台灯'" />
+	    </div>
+   	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+    		<div >FileType(hex):</div> 
+	        <input class="easyui-validatebox easyui-textbox"  style="width:100%" type="text" name="fileType" data-options="required:true,validType:['onlyHex','length[1,2]'],prompt:'文件类型,16进制'" />
+	    </div>
+	     <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  style="">FileIndex(hex):</div>
+	        <input class="easyui-validatebox easyui-textbox" style="width:100%" type="text" name="fileIndex" data-options="required:true,validType:['onlyHex','length[1,2]'],prompt:'文件顺序，16进制'" />
+	    </div>
+	     <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  >写入地址(hex):</div>
+	        <input class="easyui-validatebox easyui-textbox"  style="width:100%" type="text" name="flashAddr" data-options="required:true,validType:['onlyHex','length[5,5]'],prompt:'写入地址，16进制'" />
+	    </div>
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  style="vertical-align: top" >备注:</div>
+	        <input class="easyui-validatebox easyui-textbox"  style="width:100%;height: 60px"  name="remark"   data-options="multiline:true,prompt:'备注'"  >
+	    </div>
+	    
+	    <div style="margin-bottom: 5px">
+			<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="versionList.fnAddFirmFile()">确定</a>
+			<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="addFirmFileForm.reset()">清除</a>
+		</div>
+	</form>
+</div>
+<!-- -------------------------------------add end--------------------------------------- -->
+
+
+<!-- --------------------------------------------------edit start---------------------------- -->
+<div id="editFirmFileDialog" style="width:610px;height:480px;display: none;">
+	   <form name="editFirmFileForm" id="editFirmFileForm" method="post" enctype="multipart/form-data"   class="easyui-form" style="margin: 10px">
+	    <input type="hidden" name="versionId" id="versionId">
+	   	<input type="hidden" name="firmFileId" id="firmFileId">
+	    
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div>文件:</div> 
+	        <input class="easyui-filebox easyui-validatebox" style="width:100%"  id="file_edit"  name="file" data-options="validType:['requireFile']" />
+	    </div>
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+ 	        <div  >名称:</div>  
+	        <input value="" class="easyui-validatebox easyui-textbox" style="width:100%" type="text" id="name_edit"  name="name_"  data-options="required:true,validType:[ 'length[1,11]'],prompt:'固件的名称，将会作为信息提供到台灯'" />
+	    </div>
+   	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+    		<div >FileType(hex):</div> 
+	        <input  value="" class="easyui-validatebox easyui-textbox"  style="width:100%" type="text" id="fileType_edit"  name="fileType" data-options="required:true,validType:['onlyHex','length[1,2]'],prompt:'文件类型,16进制'" />
+	    </div>
+	     <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  style="">FileIndex(hex):</div>
+	        <input  value="" class="easyui-validatebox easyui-textbox" style="width:100%" type="text"  id="fileIndex_edit" name="fileIndex" data-options="required:true,validType:['onlyHex','length[1,2]'],prompt:'文件顺序，16进制'" />
+	    </div>
+	     <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  >写入地址(hex):</div>
+	        <input  value="" class="easyui-validatebox easyui-textbox"  style="width:100%" type="text" id="flashAddr_edit" name="flashAddr" data-options="required:true,validType:['onlyHex','length[5,5]'],prompt:'写入地址，16进制'" />
+	    </div>
+	    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+	        <div  style="vertical-align: top" >备注:</div>
+	        <input  value="" class="easyui-validatebox easyui-textbox"  style="width:100%;height: 60px" id="remark_edit"  name="remark"   data-options="multiline:true,prompt:'备注'"  >
+	    </div>
+	    
+	    <div style="margin-bottom: 5px">
+			<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="versionList.fnEditFirmFile()">确定</a>
+			<a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onclick="$('#editFirmFileDialog').dialog('close');">取消</a>
+		</div>
+	</form>
+
+	  
+</div>
+<!-- --------------------------------------------------edit end---------------------------- -->
+
+ 
+<script>
+
+	loadJs("version/list.js");
+
+</script>

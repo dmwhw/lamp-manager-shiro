@@ -1,0 +1,82 @@
+
+
+	<table id="importLogTable"   style="height: 100%"
+	         rownumbers="true" pagination="true" toolbar="#tb">
+	    <thead>
+	        <tr>
+	            <th field="username"  align="center">操作员</th>
+	            <th field="log" align="center">结果</th>
+	            <th field="status"   align="center">操作</th>
+	            <th field="time"  align="center" formatter="timestampToyyyyMMddHHmmssFormatter">操作时间</th>
+	            <th field="file_name"  align="center"  >文件名</th>
+	        </tr>
+	    </thead>
+	</table>
+	<div id="tb" style="padding:2px 5px;display: none;">
+	操作时间: <input class="easyui-datebox" id="start" style="width:110px" data-options="formatter : dateToyyyyMMddFormatter ,parser : yyyyMMddToDateParser">
+	至: <input class="easyui-datebox" id="end" style="width:110px" data-options="formatter: dateToyyyyMMddFormatter ,parser: yyyyMMddToDateParser">
+	操作: 
+	      <select class="easyui-combobox" panelHeight="auto" style="width:100px" id="status">
+	          <option value="">全部</option>
+	          <option value="导入成功">导入成功</option>
+	          <option value="导入失败">导入失败</option>
+	          <option value="检查">检查</option>
+	      </select>
+	操作员: <input class="easyui-textbox" style="width:110px" id="username">
+	     <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="importLog.fnDoQuery()">Search</a>
+	</div>
+ 
+
+
+<script type="text/javascript">
+	var importLog={
+			init:function (){
+	            $('#importLogTable').datagrid({
+	                url : GVAR.ctx + "api/web/deviceImportLog/page",
+	            });
+			},
+			fnDoQuery :function(){
+				if($("#start").val() && $("#end").val()){
+					var start = new Date($("#start").val() + " 00:00:00");
+					var end = new Date($("#end").val() + " 00:00:00");
+					if(end.getTime() < start.getTime()){
+						alert("开始时间不能比结束时间大");
+						return;
+					}
+				}
+                var queryParams = new Object();
+                if($("#username").val())
+                queryParams.username = $("#username").val();
+                if($("#start").val())
+                queryParams.start = $("#start").val();
+                if($("#end").val())
+                queryParams.end = $("#end").val();
+                if($("#status").val())
+                queryParams.status = $("#status").val();
+				
+		        var dg = $('#importLogTable');
+		        dg.datagrid('loadData',[]);
+		        dg.datagrid({pagePosition:$('#p-pos').val(),queryParams: queryParams });
+		        dg.datagrid('getPager').pagination({
+		            layout:['list','sep','first','prev','sep',$('#p-style').val(),'sep','next','last','sep','refresh','info']
+		        });
+		    },
+	 
+	        //------------------------------ui----------------
+	        //改变表格宽高
+	        domresize : function (){
+	            $('#mainContent').tabs('resize',{ 
+	                height:$("#mainContent").height(),
+	                width:$("#mainContent").width()
+	            });
+	                
+	            $('#importLogTable').datagrid('resize',{ 
+	                height:$("#mainContent").height()-$("#mainContent").children(":first").height()-5,
+	                width:$("#mainContent").width()
+	            });
+	         },
+				
+	};
+	addResizeFunction(importLog.domresize);
+	importLog.init();
+</script>

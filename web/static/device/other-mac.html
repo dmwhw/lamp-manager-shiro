@@ -1,0 +1,47 @@
+
+
+
+
+
+<table   id="otherMacListTab"  style="height: 100%"
+        data-options="fitColumns:true,
+        			singleSelect:false
+        			" 
+        	iconCls="icon-save"
+            rownumbers="true" toolbar="#otherMacListTabToolBar">
+
+</table>
+
+
+
+<!-- 工具栏  -->
+<div id="otherMacListTabToolBar" style="padding:2px 5px;display: none;">
+	<div>
+			<a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="otherMac.uiShowDelMacConfirm()">删除</a>
+			<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="otherMac.uiShowImportConfirm()">导入到白名单</a>
+			<a href="#" class="easyui-linkbutton" iconCls="icon-reload" plain="true" onclick="otherMac.fnRefreshData()">刷新</a>
+
+	</div>
+
+</div>
+
+<div id="otherMacChooseModelNoDialog" style=" display: none;width: 250px;height: 160px;" >
+	<div style="margin: 10px">
+		<div >型号：</div>
+	 	<select id="otherMacChooseModelNoCombobox" class="easyui-combobox"  style="width:100%;" data-options="prompt:'请选择台灯的型号'">
+	
+		</select>
+		<br>
+		<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'"  style="margin-top: 10px;float: right;"  onclick="otherMac.fnAddMacs()">确定</a>
+	</div>
+	
+
+</div>
+
+
+
+<script>
+
+loadJs("device/other-mac.js");
+
+</script>

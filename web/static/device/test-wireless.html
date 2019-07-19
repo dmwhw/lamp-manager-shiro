@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>信号强度测试</title>
+<style>
+div {
+	font-weight:bold
+}
+
+div span{
+	font-weight:none;
+	color:red
+}
+</style>
+<script src="https://cdn.bootcss.com/jquery/1.12.3/jquery.js"></script>
+</head>
+<body>
+<form name="testForm">
+设备：<input name="deviceUuid" value="fdc525244ea744719911113013441f86"/> <br/>
+
+测试条件：
+<br>
+<input   type="radio"   value="1"    name="csoption"  checked="checked"/>
+<select name="cstj"   id="cstj1" >
+				<option value="室内5米">1--室内5米</option>
+				<option value="室内10米">2--室内10米</option>
+				<option value="室内15米">室内15米</option>
+				<option value="室内20米">室内20米</option>
+				<option value="同楼层穿透一堵墙3米">4--同楼层穿透一堵墙3米</option>
+				<option value="同楼层穿透一堵墙5米">5--同楼层穿透一堵墙5米</option>
+				<option value="同楼层穿透一堵墙8米">6--同楼层穿透一堵墙8米</option>
+				<option value="同楼层穿透两堵墙4米">7--同楼层穿透两堵墙4米</option>
+				<option value="同楼层穿透两堵墙8米">8--同楼层穿透两堵墙8米</option>
+				<option value="上下楼层穿透一堵墙4米">9--上下楼层穿透一堵墙4米</option>
+				<option value="上下楼层穿透一堵墙8米">10--上下楼层穿透一堵墙8米</option>
+				<option value="室外10米">1-室外10米</option>
+				<option value="室外30米">2-室外30米</option>
+				<option value="室外50米">3-室外50米</option>
+				<option value="室外80米">4-室外80米</option>
+				<option value="室外100米">5-室外100米</option>
+				<option value="室外120米">6-室外120米</option>
+			</select>
+</br>
+<input   type="radio"   value="0"    name="csoption" />自定义
+<input   type="text"   value=""  placeholder="输入自定义条件"   name="cstj"  id="cstj0" disabled="disabled" />
+
+
+
+ <br/>
+<div>
+	<H1>信号强度测试10次</H1>
+	
+	<button type="button" onclick="DeviceWirelessTest.tesWirelessRssi(this)" > 开始</button>
+	<button type="button" onclick="DeviceWirelessTest.clearTesWirelessRssi(this)" > 清空</button>
+	<div>测试状态： <span id="xhcszt"></span></div>
+	<div>信号范围：<span id="xhfw"></span></div>
+	<div>信号平均值：<span id="xhpjz"></span></div>
+	<div>成功次数：<span id="xhcgcs"></span></div>
+	
+</div>
+<br>
+ <div>
+	<H1>台灯收包能力测试,测试发送100个包</H1>
+	<button type="button" onclick="DeviceWirelessTest.tesWirelessRecv(this)" > 开始</button>
+	<button type="button" onclick="DeviceWirelessTest.clearTesWirelessRecv(this)" > 清空</button>
+	<div>测试状态： <span id="sbcszt"></span></div>
+	<div>台灯应该收到的包总数：<span id="sbyszs"></span></div>
+	<div>实际台灯收到的总数:<span id="sbsjzs"></span></div>
+	<div>丢失总数<span id="sbdszs"></span></div>
+	<div>丢失率:<span id="sbdsl"></span></div>
+	<div>总用时:<span id="sbzys"></span></div>
+</div>
+
+<div>
+	<H1>台灯发包能力测试 </H1>
+	<button type="button" onclick="DeviceWirelessTest.tesWirelessSend(this)" > 开始</button>
+	<button type="button" onclick="DeviceWirelessTest.clearTesWirelessSend(this)" > 清空</button>
+	<div >上次测试时间： <span id="fbscsj"></span></div>
+	<div>台灯应该发的包总数：<span id="fbyfzs"></span></div>
+	<div>实际服务器收到的总数<span id="fbsjzs"></span></div>
+	<div>丢失总数<span id="fbdszs"></span></div>
+	<div>丢失率<span id="fbdsl"></span></div>
+	<div>总用时<span id="fbzys"></span></div>
+</div>
+
+
+<div>
+	<H1>台灯截图次数统计 </H1>
+			<input type="number"  name="captureSuccessCount">
+			<button type="button" onclick="DeviceWirelessTest.testCaptureSuccessCount(this)">提交</button>
+
+</div>
+
+</form>
+<script type="text/javascript">
+var DeviceWirelessTest={
+	tesWirelessRssi : function(thiz){
+	
+		$(thiz).attr({"disabled":"true"});
+		$(thiz).html('测试中...');
+
+        $.ajax({
+            type: "POST",
+            url:  "/manager/api/web/device-test/rssi-test",
+            data: $(testForm).serialize(),
+            async: true,
+            error: function (request) {
+        		$(thiz).removeAttr( "disabled");
+	        	$(thiz).html('开始');
+
+            },
+            success: function (data) {
+				console.log(data);
+        		$(thiz).removeAttr("disabled");
+	        	$(thiz).html('开始');
+				var rspData=data.data;
+
+				if(data.msgCode=="40001"){
+					alert("台灯无响应");
+					$(testForm).find("#xhcszt").html("台灯无响应："+new Date());
+					$(testForm).find("#xhcgcs").html(rspData.xhcgcs);
+					$(testForm).find("#xhfw").html(rspData.xhfw);
+					$(testForm).find("#xhpjz").html(rspData.xhpjz);
+				}else{
+					$(testForm).find("#xhcszt").html("成功 At："+new Date());
+					$(testForm).find("#xhcgcs").html(rspData.xhcgcs);
+					$(testForm).find("#xhfw").html(rspData.xhfw);
+					$(testForm).find("#xhpjz").html(rspData.xhpjz);
+				}
+            }
+
+        });
+	},
+	clearTesWirelessRssi: function (){
+		$(testForm).find("#xhcszt").html("");
+		$(testForm).find("#xhcgcs").html("");
+		$(testForm).find("#xhfw").html("");
+		$(testForm).find("#xhpjz").html("");
+	},
+	tesWirelessRecv : function(thiz){
+		$(thiz).attr({"disabled":"true"});
+		$(thiz).html('测试中...');
+
+        $.ajax({
+            type: "POST",
+            url: "/manager/api/web/device-test/recv-test",
+            data: $(testForm).serialize(),
+            async: true,
+            error: function (request) {
+        		$(thiz).removeAttr( "disable");
+	        	$(thiz).html('开始');
+
+            },
+            success: function (data) {
+				console.log(data);
+	        	$(thiz).html('开始');
+				$(thiz).removeAttr("disabled");
+				var rspData=data.data;
+				if(data.msgCode=="40001"){
+					alert("台灯无响应");
+					$(testForm).find("#sbcszt").html("台灯无响应："+new Date());
+				}else{
+					$(thiz).removeAttr("disable");
+					$(testForm).find("#sbcszt").html("成功 At："+new Date());
+					$(testForm).find("#sbyszs").html(rspData.sbyszs);
+					$(testForm).find("#sbsjzs").html(rspData.sbsjzs);
+					$(testForm).find("#sbdszs").html(rspData.sbdszs);
+					$(testForm).find("#sbdsl").html(rspData.sbdsl);
+					$(testForm).find("#sbzys").html(rspData.sbzys);
+				}
+
+            }
+
+        });
+	},
+	clearTesWirelessRecv: function (){
+	$(testForm).find("#sbcszt").html("");
+		$(testForm).find("#sbyszs").html("");
+		$(testForm).find("#sbsjzs").html("");
+		$(testForm).find("#sbdszs").html("");
+		$(testForm).find("#sbdsl").html("");
+		$(testForm).find("#sbzys").html("");
+	},
+	tesWirelessSend : function(thiz){
+		$(thiz).attr({"disabled":"true"});
+		$(thiz).html('测试中...');
+
+        $.ajax({
+            type: "POST",
+            url:  "/manager/api/web/device-test/send-test",
+            data: $(testForm).serialize(),
+            async: true,
+            error: function (request) {
+        		$(thiz).removeAttr( "disabled");
+        		$(thiz).html('开始');
+
+            },
+            success: function (data) {
+				console.log(data);
+        		$(thiz).removeAttr("disabled");
+        		$(thiz).html('开始');
+				var rspData=data.data;
+				if(data.msgCode=="40001"){
+					alert("台灯无响应");
+					$(testForm).find("#fbcszt").html("台灯无响应："+new Date());
+				}else{
+					$(testForm).find("#fbcszt").html("成功 At："+new Date());
+					$(testForm).find("#fbyfzs").html(rspData.fbyfzs);
+					$(testForm).find("#fbsjzs").html(rspData.fbsjzs);
+					$(testForm).find("#fbdszs").html(rspData.fbdszs);
+					$(testForm).find("#fbdsl").html(rspData.fbdsl);
+					$(testForm).find("#fbzys").html(rspData.fbzys);
+				}
+            }
+
+        });
+	},
+	clearTesWirelessSend: function (){
+		$(testForm).find("#fbcszt").html("");
+		$(testForm).find("#fbyfzs").html("");
+		$(testForm).find("#fbsjzs").html("");
+		$(testForm).find("#fbdszs").html("");
+		$(testForm).find("#fbdsl").html("");
+		$(testForm).find("#fbzys").html("");
+	},
+	testCaptureSuccessCount  : function (thiz){
+		$(thiz).attr({"disabled":"true"});
+		$(thiz).html('测试中...');
+        $.ajax({
+            type: "POST",
+            url:  "/manager/api/web/device-test/capture-success-count",
+            data: $(testForm).serialize(),
+            error: function (request) {
+        		$(thiz).removeAttr( "disabled");
+        		$(thiz).html('开始');
+
+            },
+            success: function (data) {
+        		$(thiz).html('开始');
+				console.log(data);
+        		$(thiz).removeAttr("disabled");
+            }
+
+        });
+	},
+	initUI: function (){
+		console.log($("input[name=csoption]"));
+		
+		$("input[name=csoption]").change(function(){
+			var thiz=this;
+			if ($(this).val()==1){
+				$(testForm).find("#cstj0").attr({"disabled":"true"});
+				$(testForm).find("#cstj1").removeAttr( "disabled");
+			}else{
+				$(testForm).find("#cstj1").attr({"disabled":"true"});
+				$(testForm).find("#cstj0").removeAttr( "disabled");
+			}
+		});
+	}
+	
+};
+DeviceWirelessTest.initUI();
+</script>
+</body>
+</html>

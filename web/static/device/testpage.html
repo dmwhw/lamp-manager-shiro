@@ -1,0 +1,310 @@
+<!--设备测试列表-->
+<table id="deviceTestListTab" style="height: 100%"
+       data-options="fitColumns:true,
+        			singleSelect:false
+        			"
+       iconCls="icon-save"
+       rownumbers="true" toolbar="#deviceTestListTabToolBar">
+
+</table>
+
+
+<!-- 工具栏  -->
+<div id="deviceTestListTabToolBar" style="padding:2px 5px;display: none;">
+    <div>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true"
+           onclick="testPage.fnExportResult()">导出列表</a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true"
+           onclick="testPage.uiShowTestSubjectResult()">查看测试结果</a>
+
+        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true"
+           onclick="testPage.uiShowMarkTestDoneConfirm()">标记已测</a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true"
+           onclick="testPage.uiShowEditRemarkDialog()">备注</a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="testPage.uiShowTestWindow()">功能测试</a>
+
+    </div>
+    <div>
+        <span style="font-weight:bold">查询条件:</span>
+        台灯名称: <input class="easyui-textbox" style="width:110px" id="deviceNickName">
+        测试完成日期: <input class="easyui-datebox" id="start" style="width:110px"
+                       data-options="formatter:dateToyyyyMMddFormatter,parser:yyyyMMddToDateParser">
+        至: <input class="easyui-datebox" id="end" style="width:110px"
+                  data-options="formatter:dateToyyyyMMddFormatter,parser:yyyyMMddToDateParser">
+
+        状态:
+        <select class="easyui-combobox" panelHeight="auto" style="width:100px" id="status" name="status">
+            <option value="">全部</option>
+            <option value="0">未测试</option>
+            <option value="1">已测试</option>
+        </select>
+
+        <a href="#" class="easyui-linkbutton" iconCls="icon-search"
+           onclick="testPage.refreshDeviceTestList()">Search</a>
+    </div>
+</div>
+
+<!---修改备注 -->
+<div id="editRemarkDialog" style="width:300px;height:180px;display: none;">
+    <form id="editDialogForm" name="editRemarkForm" method="post" class="easyui-form" style="margin: 10px">
+        <input type="hidden" name="id" id="id">
+        <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+            <div style="vertical-align: top">备注:</div>
+            <input class="easyui-validatebox easyui-textbox" style="width:100%;height: 60px" id="remark" name="remark"
+                   data-options="multiline:true,prompt:'备注'">
+        </div>
+
+        <div style="margin-bottom: 5px">
+            <a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'"
+               onclick="testPage.fnChangeRemark()">确定</a>
+            <a id="btn" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-clear'"
+               onclick="$(editDialogForm)[0].reset()">清除</a>
+        </div>
+    </form>
+</div>
+
+
+
+<!-- 压测日志窗口-->
+<div id="showLogDialog" style="width:400px;height:400px;display: none;">
+    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+        <div>注意，内容不做保存</div>
+        <div id="state" style="color: red"></div>
+        <input class="easyui-validatebox easyui-textbox" style="width:100%;height: 330px" id="log" name="log"
+               data-options="multiline:true,prompt:' '">
+    </div>
+
+</div>
+
+<!-- 测试内容 -->
+<div id="fnTestWindow" style="width:960px;height:600px;display: none;">
+    <form id="fnTestWindowForm" name="fnTestDialogForm" method="post" class="easyui-form" style="margin: 10px">
+        <input type="hidden" name="id" id="id">
+        <input type="hidden" name="deviceUuid" id="deviceUuid">
+
+
+        <table id="fnTestWindowTable" border="1">
+
+        </table>
+
+
+    </form>
+</div>
+
+
+
+<!-- 不正常原因填写 -->
+<div id="abnormalRemarkDialog" style="width:400px;height:200px;display: none;">
+    <div class="easyui-plus-form-row" style="margin-bottom: 10px">
+        <input type="hidden" name="deviceId" id="deviceId">
+        <input type="hidden" name="inputBtnId" id="inputBtnId">
+        <input type="hidden" name="subjectCode" id="subjectCode">
+
+        <input class="easyui-validatebox easyui-textbox" style="width:100%;height: 120px" id="remark" name="remark"
+               data-options="multiline:true,prompt:'填写不正常的原因 '">
+        <a href="#" class="easyui-linkbutton" onclick="testPage.fnPostTestResult(this,0)" data-options:"size:small" >确定</a>
+    </div>
+</div>
+
+<!--- 测试结果的对话框 --->
+<div id="testSubjectResultDialog" style="width:400px;height:200px;display: none;">
+    <table id="testSubjectResultTab" style="height: 100%;display: none;width: 100%"
+           data-options="fitColumns:true,
+        			singleSelect:false
+        			"
+            rownumbers="true"  >
+
+    </table>
+</div>
+
+
+<!--- 测试面板模板 -->
+<div style="display: none;" id="testTemplate">
+
+    <div>
+        <div>音量测试：</span></div>
+        <div>
+            <a id="btnPlus" href="#" class="lb"
+               data-options="iconCls:'icon-add'" onclick="testPage.fnAddVoiceLevel(this,'add')"></a> 音量:<span>4</span>
+            <a onclick="testPage.fnAddVoiceLevel(this,'min')"
+               id="btnMin" href="#" class="lb"
+               data-options="iconCls:'icon-remove'"></a>
+        </div>
+        <div id="testPlane" code="volume_test" style="display: none;">
+            <div>是否正常:</div>
+            <div>
+                <a id="btnStatusYes" href="#" class="lb" onclick="testPage.fnPostTestResult(this,1)" data-options:"size:small">是</a>
+                <a id="btnStausNo" href="#" class="lb" onclick="testPage.uiShowAbnormalRemarkDialog(this,this.id)" data-options:"size:small">否</a>
+            </div>
+            <div id="desc"></div>
+        </div>
+        <div id="lastTestResult"></div>
+    </div>
+
+    <div id="testPlane" code="voice_test" style="display: none;">
+        <div>语音测试：</div>
+        <div>
+            <audio controls="controls" style="display: none;"></audio>
+            <a id="btnPlay" href="#" class="lb" onclick="testPage.fnPlayVoice(this)">试听语音</a>
+            <a id="btnSend" href="#" class="lb" onclick="testPage.fnSendVoice(this)">发送语音</a>
+        </div>
+        <div>
+            <a id="btn1" href="#" class="lb" onclick="testPage.fnPlayInternalVoice(this,1)">加油</a>
+            <a id="btn2" href="#" class="lb" onclick="testPage.fnPlayInternalVoice(this,2)">好棒</a>
+            <a id="btn3" href="#" class="lb" onclick="testPage.fnPlayInternalVoice(this,3)">休息</a>
+            <a id="btn4" href="#" class="lb" onclick="testPage.fnPlayInternalVoice(this,4)">坐姿</a>
+
+        </div>
+        <div id="testPlane" code="voice_test" style="display: none;">
+            <div>是否正常:</div>
+            <div>
+                <a id="btnStatusYes" href="#" class="lb" onclick="testPage.fnPostTestResult(this,1)" data-options:"size:small">是</a>
+                <a id="btnStausNo" href="#" class="lb" onclick="testPage.uiShowAbnormalRemarkDialog(this,this.id)" data-options:"size:small">否</a>
+            </div>
+            <div id="desc">语音鼓励依赖高质量网络传输，如果播放失败，可能是网络原因，请重试</div>
+        </div>
+        <div id="lastTestResult"></div>
+    </div>
+
+    <div>
+        <div>亮度测试：</div>
+        <div>
+            <a id="btnPlus" href="#" class="lb" onclick="testPage.fnchangeBrightnessLevel(this,'add')"
+               data-options="iconCls:'icon-add'"></a> 亮度:<span>5</span>
+            <a onclick="testPage.fnchangeBrightnessLevel(this,'min')"
+               id="btnMin" href="#" class="lb"
+               data-options="iconCls:'icon-remove'"></a>
+        </div>
+        <div id="testPlane" code="ligth_level_test" style="display: none;">
+            <div>是否正常:</div>
+            <div>
+                <a id="btnStatusYes" href="#" class="lb" onclick="testPage.fnPostTestResult(this,1)" data-options:"size:small">是</a>
+                <a id="btnStausNo" href="#" class="lb" onclick="testPage.uiShowAbnormalRemarkDialog(this,this.id)" data-options:"size:small">否</a>
+            </div>
+            <div id="desc"></div>
+        </div>
+        <div id="lastTestResult"></div>
+    </div>
+    <div>
+        <div>色温测试：</div>
+        <div>
+            <a id="btnPlus" href="#" class="lb" onclick="testPage.fnchangeLightMode(this,'add')"
+               data-options="iconCls:'icon-add'"></a> 色温:<span>5</span>
+            <a onclick="testPage.fnchangeLightMode(this,'min')"
+               id="btnMin" href="#" class="lb"
+               data-options="iconCls:'icon-remove'"></a>
+        </div>
+        <div id="testPlane" code="light_mode_test" style="display: none;">
+            <div>是否正常:</div>
+            <div>
+                <a id="btnStatusYes" href="#" class="lb" onclick="testPage.fnPostTestResult(this,1)" data-options:"size:small">是</a>
+                <a id="btnStausNo" href="#" class="lb" onclick="testPage.uiShowAbnormalRemarkDialog(this,this.id)" data-options:"size:small">否</a>
+            </div>
+            <div id="desc"></div>
+        </div>
+        <div id="lastTestResult"></div>
+    </div>
+    <div>
+        <div>坐姿配置测试：</div>
+        <div>
+   		   	<form >
+   		   		   		   	    开关
+	             <select id="on" name="on">
+	             	<option value="1">1-开</option>
+	             	<option value="0">0-关</option>
+	             </select>
+	             <br>	
+	   		   	    检查方法
+	             <select id="checkWay" name="checkWay">
+	             	<option value="2">1-自动</option>
+	             	<option value="1">2-手工基准线</option>
+	             </select>
+	             <br>	 
+	   			   基准线
+	              <input id="headBaseLine" name="headBaseLine"  class="numberRange"  value="150" data-options="increment:1,min:0,max:480,height:18" style="width:120px;"></input>
+	              <br>
+	              
+	             提醒音
+	             <select id="warnVoice"  name="warnVoice" >
+	             	<option value="11">11-不要弯腰低头啦</option>
+	             	<option value="12">12-木桶</option>
+	             	<option value="13">13-气泡</option>
+	             	<option value="14">14-敲木鱼</option>
+	             </select> 
+	             <br>
+             </form>
+             <a id="btnSet" href="#" class="lb" onclick="testPage.fnSetPositionStatus(this)"
+               data-options="">设置</a>   
+             <a id="btnGet" href="#" class="lb" onclick="testPage.fnGetPositionStatus(this)"
+               data-options="">获取</a>  
+        </div>
+        <div id="testPlane" code="position_check_config_test" style="display: none;">
+            <div>是否正常:</div>
+            <div>
+                <a id="btnStatusYes" href="#" class="lb" onclick="testPage.fnPostTestResult(this,1)" data-options:"size:small">是</a>
+                <a id="btnStausNo" href="#" class="lb" onclick="testPage.uiShowAbnormalRemarkDialog(this,this.id)" data-options:"size:small">否</a>
+            </div>
+            <div id="desc"></div>
+        </div>
+        <div id="lastTestResult"></div>
+    </div>
+    <div>
+        <div>摄像头测试(点击图片刷新)：</div>
+
+        <div>
+            <img id="refreshImg" src="images/refresh.png" style="width: 48px; height: 48px"
+                 onclick="testPage.fnCapture(this)">
+            <a href="#" onclick="testPage.uiOpenPicInNewWindow(this)" style="display:none;">放大</a>
+            <span id="Imgprogress">
+            <script>
+                $("#testTemplate #refreshImg").attr({src: GVAR.ctx + "images/refresh.png"});
+            </script>
+        </div>
+        <div id="testPlane" code="camera_test" style="display: none;">
+            <div>是否正常:</div>
+            <div>
+                <a id="btnStatusYes" href="#" class="lb" onclick="testPage.fnPostTestResult(this,1)" data-options:"size:small">是</a>
+                <a id="btnStausNo" href="#" class="lb" onclick="testPage.uiShowAbnormalRemarkDialog(this,this.id)" data-options:"size:small">否</a>
+            </div>
+            <div id="desc">图像传输依赖网络，若果多次加载失败，可能是网络问题，请重试。</div>
+        </div>
+        <div id="lastTestResult"></div>
+    </div>
+    <div>
+        <div>OTA升级</div>
+        <div>
+            <!--  						<a id="btnStart" href="#" class="lb" onclick="testPage.uiShowOTAValiableList(this)" style="">选择目标版本</a>   -->
+        </div>
+        <div id="testPlane" code="ota_test" style="display: none;">
+            <div>是否正常:</div>
+            <div>
+                <a id="btnStatusYes" href="#" class="lb" onclick="testPage.fnPostTestResult(this,1)" data-options:"size:small">是</a>
+                <a id="btnStausNo" href="#" class="lb" onclick="testPage.uiShowAbnormalRemarkDialog(this,this.id)" data-options:"size:small">否</a>
+            </div>
+            <div id="desc"></div>
+        </div>
+    </div>
+    <div>
+        <div>压测Log</div>
+        <div>
+            请确保为压测版本<a id="btnStart" href="#" class="lb" onclick="testPage.fnGetTestLog(this)">查看log</a>
+        </div>
+        <div id="testPlane" code="high_temperature_test_log" style="display: none;">
+            <div>是否正常:</div>
+            <div>
+                <a id="btnStatusYes" href="#" class="lb" onclick="testPage.fnPostTestResult(this,1)" data-options:"size:small">是</a>
+                <a id="btnStausNo" href="#" class="lb" onclick="testPage.uiShowAbnormalRemarkDialog(this,this.id)" data-options:"size:small">否</a>
+            </div>
+            <div id="desc"></div>
+        </div>
+        <div id="lastTestResult"></div>
+    </div>
+
+
+</div>
+
+<div id="picDialog" style="display: none;width: 650px;height: 500px"><img style="width: 100%;height: 100%"></div>
+<script>
+    loadJs("device/websocket.js", "device/testpage.js");
+
+</script>

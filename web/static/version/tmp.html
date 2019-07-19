@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>固件更改</title>
+<style type="text/css">
+#uploadForm input{ width: 150px}
+
+</style>
+</head>
+
+<body>
+
+
+<button type="button" onclick="refreshFirmFileList()">刷新</button>
+<table id="firmFileTabTMP">
+	<thead>
+	<tr>
+		<th>版本id</th>
+		<th>name</th>
+		<th>file_type</th>
+		<th>file_index</th>
+		<th>checksum</th>
+		<th>md5</th>
+		<th>写入地址</th>
+		<th>大小(bytes)</th>
+		<th>上传时间</th>
+		<th>备注</th>		
+	</tr>
+	
+	</thead>
+	<tbody id="firmFileTabTMPBody" >
+	
+	</tbody>
+
+</table>
+
+<br>
+<br>
+<br>
+-----------------------------------------------------------------------------------
+<br>
+
+
+<button type="button" onclick="addRows()">增加</button>
+
+<form id="uploadForm"  enctype="multipart/form-data" method="post">
+ <input type="hidden" value="4" name="versionId">
+ <table id="firmFileUploadTab">
+	<thead>
+	<tr>
+		<th >filename</th>
+		<th >文件</th>
+		<th  >file_type(hex)</th>
+		<th  >file_index(hex)</th>
+		<th  >写入地址(hex)</th>
+		<th  >备注</th>
+		<th  >操作</th>
+		
+	</tr>
+	
+	</thead>
+	
+	
+	
+	<tbody >
+		<tr>
+			<td><input type="text" name="name_" value="App"></td>
+		 	<td><input type="file" name="files" ></td>
+			<td><input type="text" name="type" value="1"></td>
+			<td><input type="text" name="index" value="1"></td>
+			<td><input type="text" name="file_addr" value="0"></td>
+			<td><input type="text" name="remark" > </td>
+			<td><a href="#" onclick="delThisUpload(this)">删除</a></td>
+		</tr>
+		<tr>
+			<td><input type="text" name="name_" value="blank.bin" ></td>
+		 	<td><input type="file" name="files" ></td>
+			<td><input type="text" name="type" value="10"></td>
+			<td><input type="text" name="index" value="10"></td>
+			<td><input type="text" name="file_addr" value="7E000"></td>
+			<td><input type="text" name="remark" > </td>
+			<td><a href="#" onclick="delThisUpload(this)">删除</a></td>
+		</tr>
+		<tr>
+			<td><input type="text" name="name_" value="text.bin"></td>
+		 	<td><input type="file" name="files" ></td>
+			<td><input type="text" name="type" value="10"></td>
+			<td><input type="text" name="index" value="20"></td>
+			<td><input type="text" name="file_addr" value="40000"></td>
+			<td><input type="text" name="remark"> </td>
+			<td><a href="#" onclick="delThisUpload(this)">删除</a></td>
+		</tr>
+		<tr>
+			<td><input type="text" name="name_" value="flash.bin"></td>
+		 	<td><input type="file" name="files" ></td>
+			<td><input type="text" name="type" value="10"></td>
+			<td><input type="text" name="index" value="40"></td>
+			<td><input type="text" name="file_addr" value="0"></td>
+			<td><input type="text" name="remark"> </td>
+			<td><a href="#" onclick="delThisUpload(this)">删除</a></td>
+		</tr>
+		<tr>
+			<td><input type="text" name="name_" value="rf.bin"></td>
+		 	<td><input type="file" name="files" ></td>
+			<td><input type="text" name="type" value="10"></td>
+			<td><input type="text" name="index" value="80"></td>
+			<td><input type="text" name="file_addr" value="7C000"></td>
+			<td><input type="text" name="remark"> </td>
+			<td><a href="#" onclick="delThisUpload(this)">删除</a></td>
+		</tr>
+		
+		
+	</tbody>
+
+
+ 	<tfoot>
+ 	<tr>
+ 	<td>
+ 		<input type="button" onclick="uploadFile()" value="上传固件">
+ 	</td>
+ 	</tr>
+ 	
+ 		
+ 	</tfoot>
+</table>
+	
+ 	
+	
+</form>
+
+
+
+
+<script type="text/javascript">
+refreshFirmFileList();
+ var originHtml=$("#uploadForm tbody").html();
+function refreshFirmFileList(){
+	 $.ajax({
+			type:"POST",
+			url:   GVAR.ctx+"api/web/firm-file/pagebean_tmp",					
+			//data: {versionId:},
+			async:true,
+			error:function(request){
+				
+			},
+			success:function(data){
+			 	console.log(data);
+			 	var html="";
+ 
+			 	var respData=data.data;
+			 	if (respData.pageBean.totalCount!=0){
+			 		for(var index in respData.pageBean.list){
+			 			var firmFile=respData.pageBean.list[index];
+			 			html+="<tr>";
+			 			html+="<td>"+firmFile.versionId+"</td>";
+			 			html+="<td>"+firmFile.name+"</td>";
+			 			html+="<td>"+firmFile.firmwareFileType.toString(16).toUpperCase()+"</td>";
+			 			html+="<td>"+firmFile.firmwareFileIndex.toString(16).toUpperCase()+"</td>";
+			 			html+="<td>"+firmFile.checkSum.toString(16).toUpperCase()+"</td>";
+			 			html+="<td>"+firmFile.fileMd5+"</td>";
+			 			html+="<td>"+firmFile.flashAddr.toString(16).toUpperCase()+"</td>";
+			 			html+="<td>"+firmFile.fileLength+"</td>";
+			 			html+="<td>"+ timestampToyyyyMMddHHmmssFormatter( firmFile.uploadDate,null,null) +"</td>";
+			 			html+="<td>"+firmFile.remark+"</td>";
+			 			html+="</tr>";
+ 			 		}
+			 	}else{
+			 		html="<tr><td>无数据....</td></tr>";
+			 	}
+			 	$("#firmFileTabTMPBody").html(html);
+			 	
+			 	
+			}
+		});	
+}
+
+var uploadhtml=$("#firmFileUploadTab tbody").html();
+function addRows(){
+	$("#firmFileUploadTab tbody").append(uploadhtml);
+}
+function delThisUpload(thiz){
+	$(thiz).parent().parent().remove();
+}
+function uploadFile(){
+	var isOk=true;
+	var names=$("#uploadForm [name='name_']");
+	var files=$("#uploadForm [name='files']");
+	var type=$("#uploadForm [name='type']");
+	var index=$("#uploadForm [name='index']");
+	var file_addr=$("#uploadForm [name='file_addr']");
+	var remark=$("#uploadForm [name='remark']");
+	$(names).each(function (){
+		var obj=this;
+		if ($(obj).val()==''){
+			$(obj).css({"background-color":"red"});
+		}else{
+			$(obj).css("background-color","");
+		}
+		
+	});
+	$(files).each(function (){
+		var obj=this;
+		if ($(obj).val()==''){
+			$(obj).css({"background-color":"red"});
+			isOk=false;
+		}else{
+			$(obj).css("background-color","");
+		}
+		
+	});
+	$(type).each(function (){
+		var obj=this;
+		if ($(obj).val()==''||!isHexString($(obj).val())){
+			$(obj).css({"background-color":"red"});
+			isOk=false;
+		}else{
+			$(obj).css("background-color","");
+		}
+		
+	});
+	$(index).each(function (){
+		var obj=this;
+		if ($(obj).val()==''){
+			$(obj).css({"background-color":"red"});
+			isOk=false;
+		}else{
+			$(obj).css("background-color","");
+		}
+		
+	});
+	$(file_addr).each(function (){
+		var obj=this;
+		if ($(obj).val()==''||!isHexString($(obj).val())){
+			$(obj).css({"background-color":"red"});
+			isOk=false;
+		}else{
+			$(obj).css("background-color","");
+		}
+		
+	});
+ 	if (!isOk){
+ 		return ;
+ 	}
+ 	var form= new FormData( $("#uploadForm")[0] );
+	debugger;
+	 $.ajax({
+			type:"POST",
+			url:   GVAR.ctx+"api/web/firm-file/upload_tmp",					
+			data:  form,
+		    dataType: 'JSON',
+		    cache: false,                      // 不缓存
+		    processData: false,                // jQuery不要去处理发送的数据
+		    contentType: false,                // jQuery不要去设置Content-Type请求头
+			error:function(request){
+				
+			},
+			success:function(data){
+				console.log(data);
+				if (data.msgCode=="10000"){
+				 	$("#uploadForm tbody").html(originHtml);
+				 	refreshFirmFileList();
+					alert("操作成功");
+
+				}else{
+					alert("操作失败"+data.msg);
+				}
+			}
+	});
+	
+}
+
+function isHexString(str){
+	if (!str){
+		return false;
+	}
+	const regex=/^[A-Fa-f0-9]+$/;
+	return regex.test(str);
+}
+
+</script>
+</body>
+</html>
