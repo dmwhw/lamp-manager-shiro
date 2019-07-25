@@ -17,7 +17,7 @@ import com.gzseeing.utils.LogUtils;
  *
  */
 public class AjaxHandleFormAuthenticationFilter extends FormAuthenticationFilter {
-
+    // https://blog.csdn.net/dghkgjlh/article/details/90145603
     @Override
     protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
         LogUtils.info("this is ajax handle filter");

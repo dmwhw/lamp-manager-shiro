@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.gzseeing.sys.model.R;
-import com.gzseeing.sys.shiro.CustomizedToken;
 import com.gzseeing.sys.shiro.ShiroConfig;
+import com.gzseeing.sys.shiro.authc.CustomizedToken;
 
 @Controller
 @RequestMapping("/api/web/entry")

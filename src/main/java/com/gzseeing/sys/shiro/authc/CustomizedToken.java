@@ -1,4 +1,4 @@
-package com.gzseeing.sys.shiro;
+package com.gzseeing.sys.shiro.authc;
 
 import org.apache.shiro.authc.UsernamePasswordToken;
 

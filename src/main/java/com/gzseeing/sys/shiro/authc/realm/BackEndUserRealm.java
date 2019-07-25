@@ -1,10 +1,11 @@
-package com.gzseeing.sys.shiro.realm;
+package com.gzseeing.sys.shiro.authc.realm;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -17,6 +18,8 @@ import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.crypto.hash.Md5Hash;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,6 +30,12 @@ import com.gzseeing.sys.shiro.ShiroConfig;
 import com.gzseeing.utils.LogUtils;
 import com.gzseeing.utils.RedisUtils;
 
+/**
+ * 处理认证和权限的 自带缓存功能
+ * 
+ * @author haowen
+ *
+ */
 @Component
 public class BackEndUserRealm extends AuthorizingRealm {
 
@@ -47,12 +56,24 @@ public class BackEndUserRealm extends AuthorizingRealm {
         return ShiroConfig.LOGIN_TYPE_BACKEND_USER;
     }
 
+    /*  
+     *  身份有何种权限的。
+     *  这个是针对特定用户的 
+     *  在这个位置给用户配置权限和角色。
+     *  
+     *  这个仅仅在做首次，权限验证时调用出现。之后会使用缓存，不再调用。
+     *  
+     */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-        System.out.println("权限配置-->MyShiroRealm.doGetAuthorizationInfo()");
+        LogUtils.info("这个位置配置权限的，权限配置-->MyShiroRealm.doGetAuthorizationInfo()");
+        LogUtils.info("doGetAuthorizationInfo()...{}" + principals);
+
         SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
         authorizationInfo.addRole("role");
         authorizationInfo.addStringPermission("permission");
+        Object next = principals.fromRealm(getName()).iterator().next();
+        LogUtils.info("这个是在权限验证的时候出现的,这个是用户名{}", next);
         return authorizationInfo;
     }
 
@@ -63,7 +84,7 @@ public class BackEndUserRealm extends AuthorizingRealm {
 
         // 获取用户的输入的账号.
         String username = (String)token.getPrincipal();
-        System.out.println(token.getCredentials());
+        // System.out.println(token.getCredentials());
         // 这里可以根据实际情况做缓存，如果不做，Shiro自己也是有时间间隔机制，2分钟内不会重复执行该方
         BackendUser backendUser = null;
         if ((backendUser = backendUserService.getByUserName(username)) == null) {
@@ -108,6 +129,21 @@ public class BackEndUserRealm extends AuthorizingRealm {
             return false;
         }
         return true;
+    }
+
+    /**
+     * 修改了某个人的权限.假装是某个人，然后去清空他的授权缓存。
+     * 
+     * @author haowen
+     * @time 2019年7月23日上午11:37:15
+     * @Description
+     */
+    public void clearAuthz(String userName) {
+        Subject subject = SecurityUtils.getSubject();
+        SimplePrincipalCollection principals = new SimplePrincipalCollection(userName, getName());
+        subject.runAs(principals);
+        this.getAuthorizationCache().remove(subject.getPrincipals());
+        subject.releaseRunAs();
     }
 
     public static void main(String[] args) {

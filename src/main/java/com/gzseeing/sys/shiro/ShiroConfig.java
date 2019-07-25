@@ -1,7 +1,5 @@
 package com.gzseeing.sys.shiro;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,12 +28,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.data.redis.core.RedisTemplate;
 
-import com.gzseeing.sys.shiro.cache.MyRedisCacheManager;
+import com.gzseeing.sys.shiro.authc.CustomizedModularRealmAuthenticator;
+import com.gzseeing.sys.shiro.authorize.tool.FilterChainDefinitionsService;
+import com.gzseeing.sys.shiro.cache.ShiroRedisCacheManager;
 import com.gzseeing.sys.shiro.filter.AjaxHandleFormAuthenticationFilter;
+import com.gzseeing.sys.shiro.filter.CustomRolesAuthorizationFilter;
 import com.gzseeing.sys.shiro.session.MySessionManager;
+import com.gzseeing.utils.LogUtils;
 
 @Configuration
 @Lazy(true)
@@ -58,7 +58,8 @@ public class ShiroConfig {
 
     @Autowired
     private List<Realm> realmList;
-
+    @Autowired
+    private FilterChainDefinitionsService filterChainDefinitionsService;
     @Value("${spring.redis.shiro.host}")
     private String host;
     @Value("${spring.redis.shiro.port}")
@@ -69,42 +70,28 @@ public class ShiroConfig {
     private String password;
 
     // @Bean("cacheManager")
-    public RedisCacheManager cacheManager(RedisTemplate redisTemplate) {
-        RedisCacheManager rdm = new RedisCacheManager(redisTemplate);
-        Map<String, Long> expires = new HashMap<>();
-        expires.put("halfHour", 1800L);
-        expires.put("hour", 3600L);
-        expires.put("oneDay", 86400L);
-        // shiro cache keys 对缓存的配置
-        expires.put("authorizationCache", 1800L);
-        expires.put("authenticationCache", 1800L);
-        expires.put("activeSessionCache", 1800L);
-        rdm.setExpires(expires);
-        return rdm;
-    }
-
+    // public RedisCacheManager cacheManager(RedisTemplate redisTemplate) {
+    // RedisCacheManager rdm = new RedisCacheManager(redisTemplate);
+    // Map<String, Long> expires = new HashMap<>();
+    // expires.put("halfHour", 1800L);
+    // expires.put("hour", 3600L);
+    // expires.put("oneDay", 86400L);
+    // // shiro cache keys 对缓存的配置
+    // expires.put("authorizationCache", 1800L);
+    // expires.put("authenticationCache", 1800L);
+    // expires.put("activeSessionCache", 1800L);
+    // rdm.setExpires(expires);
+    // return rdm;
+    // }
+    // ---------------------------------------------------------------filter------------------------------------
     @Bean
     public ShiroFilterFactoryBean shirFilter(SecurityManager securityManager) {
-        System.out.println("ShiroConfiguration.shirFilter()");
+        LogUtils.info("ShiroConfiguration.shirFilter()");
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         // -----------------设置安全器----------------------
         shiroFilterFactoryBean.setSecurityManager(securityManager);
         // -----------------设置拦截路径----------------------
-        Map<String, String> filterChainDefinitionMap = new LinkedHashMap<String, String>();
-        // 注意过滤器配置顺序 不能颠倒
-        // 配置退出 过滤器,其中的具体的退出代码Shiro已经替我们实现了，登出后跳转配置的loginUrl
-        filterChainDefinitionMap.put("/api/web/entry/logout", "logout");
-        // 配置不会被拦截的链接 顺序判断,不含项目名
-        filterChainDefinitionMap.put("/static/**", "anon");
-        filterChainDefinitionMap.put("/api/web/entry/login", "anon");
-        filterChainDefinitionMap.put("/ui/**", "anon");
-        filterChainDefinitionMap.put("/**html", "anon");
-        filterChainDefinitionMap.put("/**js", "anon");
-        filterChainDefinitionMap.put("/**css", "anon");
-
-        filterChainDefinitionMap.put("/js/**", "anon");
-        // filterChainDefinitionMap.put("/api/**", "authc");
-        filterChainDefinitionMap.put("/**", "authc");
+        Map<String, String> filterChainDefinitionMap = filterChainDefinitionsService.loadFilterChainDefinitionMap();
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
         // --------------------设置登录页面、成功页面、未授权页面--------------------------------
         // 配置shiro默认登录界面地址，前后端分离中登录界面跳转应由前端路由控制，后台仅返回json数据
@@ -116,6 +103,7 @@ public class ShiroConfig {
         // --------------------------设置filter，定制化filter动作-----------------------------------
         Map<String, Filter> filters = shiroFilterFactoryBean.getFilters();
         filters.put("authc", new AjaxHandleFormAuthenticationFilter());
+        filters.put("roleOr", new CustomRolesAuthorizationFilter());
         return shiroFilterFactoryBean;
     }
 
@@ -131,8 +119,7 @@ public class ShiroConfig {
                     return context;
                 }
                 try {
-                    // Context couldn't resolve it directly, let's see if we can since we have direct access to
-                    // the session manager:
+
                     Session session = resolveContextSession(context);
                     if (session != null) {
                         context.setSession(session);
@@ -146,21 +133,30 @@ public class ShiroConfig {
                 return context;
             }
         };
-        // 实现支持多个realm
+        /** 安全管理器，定义了认证授权的方式、session、realm的缓存 */
+
+        // ---------------------------------实现支持多个realm---------------------------------------------------------------
+        Authenticator customizedModularRealmAuthenticator = customizedModularRealmAuthenticator();
+        LogUtils.info("这个是方法产生" + customizedModularRealmAuthenticator);
         securityManager.setAuthenticator(customizedModularRealmAuthenticator());
         if (realmList != null) {
             securityManager.setRealms(realmList);
         }
-        // 自定义session管理 使用redis
+        // ------------------------------------自定义session管理 使用redis----------------------------------------------------
+        // FIXME 这里启用 sessionManager，用的是redis的session。
         // securityManager.setSessionManager(sessionManager);
-        // 自定义缓存实现 使用redis
+        // -----------------------------------------自定义缓存----------------------------------------------------------------
+        // 自定义缓存实现 使用redis,认证和授权都会用的cache
         securityManager.setCacheManager(cacheManager);
         return securityManager;
     }
 
     @Bean
     public Authenticator customizedModularRealmAuthenticator() {
-        return new CustomizedModularRealmAuthenticator();
+        CustomizedModularRealmAuthenticator customizedModularRealmAuthenticator =
+            new CustomizedModularRealmAuthenticator();
+        LogUtils.info("这个是bean" + customizedModularRealmAuthenticator);
+        return customizedModularRealmAuthenticator;
     }
 
     /**
@@ -178,10 +174,11 @@ public class ShiroConfig {
 
     // 自定义sessionManager
     @Bean
-    public SessionManager sessionManager(MyRedisCacheManager myRedisCacheManager, SessionDAO redisSessionDAO) {
+    public SessionManager sessionManager(ShiroRedisCacheManager shiroRedisCacheManager,
+        SessionDAO enterpriseCacheSessionDAO) {
         MySessionManager mySessionManager = new MySessionManager();
-        mySessionManager.setCacheManager(myRedisCacheManager);
-        mySessionManager.setSessionDAO(redisSessionDAO);
+        mySessionManager.setCacheManager(shiroRedisCacheManager);
+        mySessionManager.setSessionDAO(enterpriseCacheSessionDAO);
         return mySessionManager;
     }
 
@@ -202,18 +199,18 @@ public class ShiroConfig {
      * @return
      */
     @Bean
-    public MyRedisCacheManager myRedisCacheManager(org.springframework.cache.CacheManager cacheManager) {
-        MyRedisCacheManager myRedisCacheManager = new MyRedisCacheManager();
+    public ShiroRedisCacheManager shiroRedisCacheManager(org.springframework.cache.CacheManager cacheManager) {
+        ShiroRedisCacheManager myRedisCacheManager = new ShiroRedisCacheManager();
         // myRedisCacheManager.setRedisDao(objectRedisDao);
         myRedisCacheManager.setCacheManager(cacheManager);
-
+        LogUtils.info("shiro用到的cacher{} ", cacheManager);
         return myRedisCacheManager;
     }
 
     @Bean
-    public EnterpriseCacheSessionDAO sessionDAO(CacheManager myRedisCacheManager) {
+    public EnterpriseCacheSessionDAO enterpriseCacheSessionDAO(CacheManager shiroRedisCacheManager) {
         EnterpriseCacheSessionDAO ecsd = new EnterpriseCacheSessionDAO();
-        ecsd.setCacheManager(myRedisCacheManager);
+        ecsd.setCacheManager(shiroRedisCacheManager);
         ecsd.setActiveSessionsCacheName("activeSessionCache");
         return ecsd;
     }

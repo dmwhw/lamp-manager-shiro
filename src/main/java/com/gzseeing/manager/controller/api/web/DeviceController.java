@@ -1,9 +1,7 @@
 package com.gzseeing.manager.controller.api.web;
 
-
-import org.springframework.web.bind.annotation.RequestMapping;
-
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * <p>
@@ -16,6 +14,5 @@ import org.springframework.stereotype.Controller;
 @Controller
 @RequestMapping("/manager/device")
 public class DeviceController {
-	
-}
 
+}

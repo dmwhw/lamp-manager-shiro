@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import com.gzseeing.manager.entity.BackendUser;
 import com.gzseeing.manager.mapper.BackendUserMapper;
 import com.gzseeing.manager.service.BackendUserService;
-import com.gzseeing.sys.shiro.CustomizedToken;
 import com.gzseeing.sys.shiro.ShiroConfig;
+import com.gzseeing.sys.shiro.authc.CustomizedToken;
 import com.gzseeing.utils.DateUtil;
 import com.gzseeing.utils.EncryptUtils;
 
